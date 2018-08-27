@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+import subprocess
+
+subprocess.check_call(['./packages-install')
+subprocess.check_call(['./rpmfusion-packages')
+subprocess.check_call(['./docker-nonroot')
