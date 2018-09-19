@@ -1,0 +1,7 @@
+# vim: filetype=yaml
+# [Instructions](https://support.zoom.us/hc/en-us/articles/204206269-Linux-Installation)
+# [Download](https://zoom.us/download?os=linux)
+
+repo-pubkey-url: https://zoom.us/linux/download/pubkey
+package-urls:
+  - https://zoom.us/client/latest/zoom_x86_64.rpm
