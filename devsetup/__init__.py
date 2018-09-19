@@ -7,6 +7,9 @@ import sys
 import os
 import subprocess
 import pwd
+import shutil
+
+import yaml
 
 from .gsettings import gsettings_patch_apply
 from .dbus import dbus_user_session_run
@@ -68,6 +71,11 @@ def package_list_file_install(filename, target_arch):
 def package_install(pkgs):
     subprocess.check_call(['dnf', 'install', '-y'] + pkgs)
 
+def rpm_urls_file_install(filename):
+    with open(filename) as f:
+        urls = [ x[:-1] for x in f.readlines() ]
+    subprocess.check_call(['dnf', 'install', '-y'] + urls)
+
 def package_is_installed(pkg):
     r = subprocess.call(['rpm', '-q', pkg], stdout=subprocess.DEVNULL)
     return (r == 0)
@@ -101,3 +109,20 @@ def default_target_user():
         except (ValueError, KeyError):
             uid = DEFAULT_UID
     return pwd.getpwuid(uid).pw_name
+
+DNF_REPO_DIR = '/etc/yum.repos.d'
+
+def repo_and_packages_install(repo_and_packages, target_arch):
+    repo_file = repo_and_packages.get('repo-file')
+    if repo_file is not None:
+        shutil.copy2(repo_file, DNF_REPO_DIR)
+
+    packages = repo_and_packages.get('packages')
+    if packages is not None:
+        package_install(package_list_translate(packages, target_arch))
+
+def repo_and_packages_file_install(filename, target_arch):
+    with open(filename) as f:
+        repo_and_packages = yaml.load(f)
+
+    repo_and_packages_install(repo_and_packages, target_arch)

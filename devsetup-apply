@@ -8,6 +8,8 @@ import devsetup
 from devsetup import (
         package_list_file_install,
         gsettings_patch_apply,
+        repo_and_packages_file_install,
+        rpm_urls_file_install,
 #        rpm_key_check_and_import,
 #        package_urls_install,
 )
@@ -22,8 +24,10 @@ rpmfusion.repo-rpm-urls
 
 file_extension_to_action = {
     # file_extension:               (function, additional_command_line_arguments)
-    '.packages':                    (package_list_file_install,     'target_arch'),
-    '.gsettings-patch':             (gsettings_patch_apply,    'users'),
+    '.packages':                    (package_list_file_install,      'target_arch'),
+    '.gsettings-patch':             (gsettings_patch_apply,          'users'),
+    '.rpm-and-packages':            (repo_and_packages_file_install, 'target_arch'),
+    '.rpm-urls':                    (rpm_urls_file_install,          None),
 #    '.rpm-key-url-and-fingerprint': (rpm_key_check_and_import, 'target_arch'), # RPM signing keys
 #    '.repo-rpm-urls':               (package_urls_install,     'target_arch'),
 }
@@ -60,6 +64,8 @@ def main():
         else:
             users = args
         function(filename, users)
+    elif arg_type == None:
+        function(filename)
     else:
         assert(0)
 

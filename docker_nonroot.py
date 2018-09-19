@@ -6,6 +6,8 @@ import subprocess
 import grp
 import pwd
 
+import devsetup
+
 def groups_get_all():
     '-> list of str, all local groups'
     return [ g.gr_name for g in grp.getgrall() ]
@@ -23,7 +25,7 @@ def username_from_uid(uid):
 
 def docker_nonroot_setup(username):
     # https://developer.fedoraproject.org/tools/docker/docker-installation.html
-    subprocess.check_call(['dnf', 'install', '-y', 'docker'])
+    devsetup.package_install(['docker'])
     subprocess.check_call(['systemctl', 'enable', 'docker'])
     subprocess.check_call(['systemctl', 'start', 'docker'])
 
@@ -36,21 +38,24 @@ def docker_nonroot_setup(username):
         subprocess.check_call(['gpasswd', '-a', username, 'docker'])
         subprocess.check_call(['systemctl', 'restart', 'docker'])
 
+def setup(uid=None, username=None):
+    if uid is None:
+        uid = 1000
+    else:
+        assert(isinstance(uid, int))
+    if username is None:
+        username = username_from_uid(uid)
+    else:
+        username = username
+    docker_nonroot_setup(username)
+
 def main():
-    parser = argparse.ArgumentParser(description='setup docker for non-root user') 
-    parser.add_argument('--uid', default=None)
+    parser = argparse.ArgumentParser(description='setup docker for non-root user')
+    parser.add_argument('--uid', type=int, default=None)
     parser.add_argument('--username', default=None)
 
     args = parser.parse_args()
-    if args.uid is None:
-        uid = 1000
-    else:
-        uid = args.uid
-    if args.username is None:
-        username = username_from_uid(uid)
-    else:
-        username = args.username
-    docker_nonroot_setup(username)
+    setup(uid=args.uid, username=args.username)
 
 if __name__ == '__main__':
     main()
