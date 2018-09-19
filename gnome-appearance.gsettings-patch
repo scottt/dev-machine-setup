@@ -1,0 +1,12 @@
+# Settings -> Background
+-org.gnome.desktop.background picture-uri 'file:///usr/share/backgrounds/f28/default/f28.xml'
++org.gnome.desktop.background picture-uri 'file:////usr/share/gnome-control-center/pixmaps/noise-texture-light.png'
+-org.gnome.desktop.background primary-color '#023c88'
++org.gnome.desktop.background primary-color '#475b52'
+-org.gnome.desktop.background picture-options 'zoom'
++org.gnome.desktop.background picture-options 'wallpaper'
+-org.gnome.desktop.background secondary-color '#5789ca'
++org.gnome.desktop.background secondary-color '#475b52'
+# Gnome Tweaks -> Appearance
+-org.gnome.desktop.interface gtk-theme 'Adwaita'
++org.gnome.desktop.interface gtk-theme 'Adwaita-dark'

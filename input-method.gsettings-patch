@@ -1,0 +1,30 @@
+# DependsOn: packages_install(['ibus-chewing'])
+#
+# Settings -> Region & Language -> Add Taiwan (Chewing) i.e. ibus-chewing
+-org.gnome.desktop.interface gtk-im-module 'gtk-im-context-simple'
++org.gnome.desktop.interface gtk-im-module 'ibus'
+-org.gnome.desktop.input-sources sources [('xkb', 'us')]
++org.gnome.desktop.input-sources sources [('xkb', 'us'), ('ibus', 'chewing')]
+
+# Settings -> Region & Language -> (Chewing) -> Gear icon
+-org.freedesktop.IBus.Chewing show-systray true
++org.freedesktop.IBus.Chewing show-systray false
+-org.freedesktop.IBus.Chewing shift-toggle-chinese true
++org.freedesktop.IBus.Chewing shift-toggle-chinese false
+-org.freedesktop.IBus.Chewing kb-type 'default'
++org.freedesktop.IBus.Chewing kb-type 'hsu'
+-org.freedesktop.IBus.Chewing sel-keys '1234567890'
++org.freedesktop.IBus.Chewing sel-keys 'asdfghjkl;'
+
+# Settings -> Keyboard -> Typing
+-org.gnome.desktop.wm.keybindings switch-input-source ['<Super>space']
++org.gnome.desktop.wm.keybindings switch-input-source ['<Primary>grave']
+-org.gnome.desktop.wm.keybindings switch-input-source-backward ['<Shift><Super>space']
++org.gnome.desktop.wm.keybindings switch-input-source-backward ['<Primary><Shift>grave']
+
+# ibus-setup
+-org.freedesktop.ibus.general.hotkey triggers ['<Super>space']
++org.freedesktop.ibus.general.hotkey triggers @as []
+## Allow Emacs and VSCode etc to use Control-Shift-e shortcut
+-org.freedesktop.ibus.panel.emoji hotkey ['<Control><Shift>e']
++org.freedesktop.ibus.panel.emoji hotkey @as []

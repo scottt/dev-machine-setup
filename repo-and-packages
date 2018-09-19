@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import shutil
+
+import yaml
+
+from devsetup import (package_install, package_list_translate)
+
+DNF_REPO_DIR = '/etc/yum.repos.d'
+
+def repo_and_packages_install(repo_and_packages):
+    repo_file = repo_and_packages.get('repo-file')
+    if repo_file is not None:
+        shutil.copy2(repo_file, DNF_REPO_DIR)
+
+    packages = repo_and_packages.get('packages')
+    target_arch = os.uname().machine
+    if packages is not None:
+        package_install(package_list_translate(packages, target_arch))
+
+def program_name():
+    return os.path.basename(sys.argv[0])
+
+def main():
+    args = sys.argv[1:]
+    try:
+        (filename,) = args
+    except ValueError:
+        sys.stderr.write('usage: %s REPO_AND_PACKAGES_FILE\n' % (program_name(),))
+        sys.exit(2)
+
+    with open(filename) as f:
+        repo_and_packages = yaml.load(f)
+
+    repo_and_packages_install(repo_and_packages)
+
+if __name__ == '__main__':
+    main()

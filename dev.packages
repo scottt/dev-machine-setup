@@ -1,0 +1,6 @@
+/usr/bin/vimx                       # vim with X11 clipboard support
+nss-mdns.__ARCHS_IN_REPO_FOR_CPU__  # MDNS .local domain resolution
+htop iotop nethogs
+strace ltrace 
+kdiff3
+chrome-gnome-shell

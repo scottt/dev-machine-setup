@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import argparse
+
+import devsetup
+from devsetup import (
+        package_list_file_install,
+        gsettings_patch_apply,
+#        rpm_key_check_and_import,
+#        package_urls_install,
+)
+
+'''
+File Types:
+dev.packages
+gnome-appearance.gsettings-patch
+google-linux.rpm-key-url-and-fingerprint
+rpmfusion.repo-rpm-urls
+'''
+
+file_extension_to_action = {
+    # file_extension:               (function, additional_command_line_arguments)
+    '.packages':                    (package_list_file_install,     'target_arch'),
+    '.gsettings-patch':             (gsettings_patch_apply,    'users'),
+#    '.rpm-key-url-and-fingerprint': (rpm_key_check_and_import, 'target_arch'), # RPM signing keys
+#    '.repo-rpm-urls':               (package_urls_install,     'target_arch'),
+}
+
+def program_name():
+    return os.path.basename(sys.argv[0])
+
+def main():
+    parser = argparse.ArgumentParser(description='interpret various config file types and do the corresponding setup')
+    parser.add_argument('args', nargs='*')
+    args = parser.parse_args()
+    try:
+        (filename, args) = (args.args[0], args.args[1:])
+    except ValueError:
+        sys.stderr.write('usage: %s FILE [ARGS ...]\n' % (program_name(),))
+        sys.exit(2)
+
+    ext = os.path.splitext(filename)[1]
+    (function, arg_type) = file_extension_to_action[ext]
+
+    if arg_type == 'target_arch':
+        n_args = len(args)
+        if n_args == 0:
+            target_arch = os.uname().machine
+        elif n_args == 1:
+            target_arch = args[0]
+        else:
+            sys.stderr.write('%s: filetype %r doesn\t take additional arguments\n' % (program_name(), ext))
+            sys.exit(2)
+        function(filename, target_arch)
+    elif arg_type == 'users':
+        if not args:
+            users = [ devsetup.default_target_user() ]
+        else:
+            users = args
+        function(filename, users)
+    else:
+        assert(0)
+
+if __name__ == '__main__':
+    main()

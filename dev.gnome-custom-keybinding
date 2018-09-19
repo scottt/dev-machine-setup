@@ -1,0 +1,4 @@
+[{ "name": "Terminal", "binding": "<Alt>F3",   "command": "gnome-terminal"},
+ { "name": "Editor",   "binding": "<Super>F2", "command": "gedit"},
+ { "name": "Files",    "binding": "<Super>e",  "command": "nautilus"}
+]

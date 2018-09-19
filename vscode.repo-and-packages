@@ -1,0 +1,6 @@
+# vim: filetype=yaml
+# https://code.visualstudio.com/docs/setup/linux
+
+repo-file: data/vscode.repo
+packages:
+  - code
