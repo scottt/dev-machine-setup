@@ -89,6 +89,7 @@ def gsettings_patch_parse(lines):
                     out.append(('remove', schema, key, (type(value))(set0 - set1)))
                 elif set1.issuperset(set0): # append or (reorder + add)
                     # maintain order for 'value'
+                    i = 0
                     for (i, v) in enumerate(value0):
                         if value[i] != v:
                             break
