@@ -26,7 +26,7 @@ file_extension_to_action = {
     # file_extension:               (function, additional_command_line_arguments)
     '.packages':                    (package_list_file_install,      'target_arch'),
     '.gsettings-patch':             (gsettings_patch_apply,          'users'),
-    '.rpm-and-packages':            (repo_and_packages_file_install, 'target_arch'),
+    '.repo-and-packages':           (repo_and_packages_file_install, 'target_arch'),
     '.rpm-urls':                    (rpm_urls_file_install,          None),
 #    '.rpm-key-url-and-fingerprint': (rpm_key_check_and_import, 'target_arch'), # RPM signing keys
 #    '.repo-rpm-urls':               (package_urls_install,     'target_arch'),
