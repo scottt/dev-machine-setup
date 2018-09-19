@@ -33,17 +33,7 @@ def package_list_translate(pkgs, target_arch):
     pkgs = out
     return pkgs
 
-def package_list_file_load(filename, target_arch):
-    '''target_arch: uname().machine
-
-    Input Format:
-/usr/bin/vimx                        # vim with X11 clipboard support
-nss-mdns.__ARCHS_IN_REPO_FOR_CPU__  # MDNS .local domain resolution
-htop iotop nethogs'''
-
-    with open(filename) as f:
-        lines = f.readlines()
-
+def lines_strip_comments(lines):
     # strip comments till end of line
     out = []
     for l in lines:
@@ -56,12 +46,30 @@ htop iotop nethogs'''
                 if c == "'":
                     in_quote = 1
                 elif c == '#':
-                    out.append(l[:i] + '\n')
+                    if i != 0:
+                        out.append(l[:i] + '\n')
                     break
         else:
             out.append(l)
-    # no space in package names
-    pkgs = ''.join(out).split()
+    return out
+
+def package_list_file_load(filename, target_arch):
+    '''target_arch: uname().machine
+
+    Input Format:
+/usr/bin/vimx                        # vim with X11 clipboard support
+nss-mdns.__ARCHS_IN_REPO_FOR_CPU__  # MDNS .local domain resolution
+htop iotop nethogs'''
+
+    with open(filename) as f:
+        lines = f.readlines()
+
+    pkgs = []
+    # support multiple package names on same line
+    # while assuming no space in package names
+    for i in lines_strip_comments(lines):
+        for j in i.split():
+            pkgs.append(j)
     return package_list_translate(pkgs, target_arch)
 
 def package_list_file_install(filename, target_arch):

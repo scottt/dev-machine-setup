@@ -2,5 +2,6 @@
 nss-mdns.__ARCHS_IN_REPO_FOR_CPU__  # MDNS .local domain resolution
 htop iotop nethogs
 strace ltrace 
+gitk git-gui
 kdiff3
 chrome-gnome-shell
