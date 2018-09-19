@@ -81,7 +81,8 @@ def package_install(pkgs):
 
 def rpm_urls_file_install(filename):
     with open(filename) as f:
-        urls = [ x[:-1] for x in f.readlines() ]
+        lines = f.readlines()
+    urls = [ x[:-1] for x in lines_strip_comments(lines) ]
     subprocess.check_call(['dnf', 'install', '-y'] + urls)
 
 def package_is_installed(pkg):
