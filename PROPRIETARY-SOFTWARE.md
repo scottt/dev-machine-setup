@@ -9,3 +9,5 @@
   * https://zoom.us/client/latest/zoom_x86_64.rpm
   * https://zoom.us/linux/download/pubkey
   * No yum repo.
+* Dropbox (client side from RPMFusion)
+  * One time download and setup: `dropbox start -i`
