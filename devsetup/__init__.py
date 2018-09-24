@@ -135,3 +135,9 @@ def repo_and_packages_file_install(filename, target_arch):
         repo_and_packages = yaml.load(f)
 
     repo_and_packages_install(repo_and_packages, target_arch)
+
+def sysctl_file_install(filename):
+    # Don't use shutil.copy2. It copies the wrong SELinux file label
+    # user_home_t vs. etc_t
+    shutil.copy(filename, '/etc/sysctl.d')
+    subprocess.check_call(['systemctl', 'restart', 'systemd-sysctl.service'])
