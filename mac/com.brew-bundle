@@ -1,0 +1,7 @@
+cask "slack"
+cask "zoom"
+cask "dropbox"
+cask "telegram" # overtake/TelegramSwift
+# telegram-desktop # cross platform: WebView based
+cask "discord"
+cask "vlc"

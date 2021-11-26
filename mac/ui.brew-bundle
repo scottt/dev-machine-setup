@@ -1,0 +1,6 @@
+cask 'scroll-reverser'
+# Nov 2021, macOS 12.0.1 needs yabai from HEAD:
+# https://github.com/koekeishiya/yabai/issues/1054
+# https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(from-HEAD)
+brew 'koekeishiya/formulae/yabai', args: ['HEAD']
+brew 'koekeishiya/formulae/skhd'
