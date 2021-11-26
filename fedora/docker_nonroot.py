@@ -7,6 +7,7 @@ import grp
 import pwd
 
 import devsetup
+import devsetup.user
 
 def groups_get_all():
     '-> list of str, all local groups'
@@ -25,7 +26,8 @@ def username_from_uid(uid):
 
 def docker_nonroot_setup(username):
     # https://developer.fedoraproject.org/tools/docker/docker-installation.html
-    devsetup.package_install(['docker'])
+    pkg_ops = devsetup.PackageOps()
+    pkg_ops.package_install(['docker'])
     subprocess.check_call(['systemctl', 'enable', 'docker'])
     subprocess.check_call(['systemctl', 'start', 'docker'])
 
@@ -40,7 +42,7 @@ def docker_nonroot_setup(username):
 
 def setup(uid=None, username=None):
     if uid is None:
-        uid = 1000
+        uid = devsetup.user.default_uid()
     else:
         assert(isinstance(uid, int))
     if username is None:

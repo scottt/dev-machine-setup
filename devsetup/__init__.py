@@ -8,6 +8,7 @@ import os
 import subprocess
 import pwd
 import shutil
+import tempfile
 
 import yaml
 
@@ -74,20 +75,50 @@ htop iotop nethogs'''
 
 def package_list_file_install(filename, target_arch):
     pkgs = package_list_file_load(filename, target_arch)
-    package_install(pkgs)
+    pkg_ops = PackageOps()
+    pkg_ops.package_install(pkgs)
 
-def package_install(pkgs):
-    subprocess.check_call(['dnf', 'install', '-y'] + pkgs)
+def PackageOps():
+    if sys.platform.startswith('linux'): # TODO: error out on non-DNF distros
+        return FedoraPackageOps
+    elif sys.platform.startswith('darwin'):
+        return MacPackageOps
+    else:
+        raise RuntimeError(f'Unsupported OS: "{sys.platform}"')
+
+class MacPackageOps:
+    @staticmethod
+    def package_install(pkgs):
+        # https://github.com/Homebrew/brew/issues/2491
+        with tempfile.NamedTemporaryFile() as tf:
+            tf.write(('\n'.join([ 'brew "%s"' % (x,) for x in pkgs ])).encode('utf-8'))
+            tf.seek(0)
+            subprocess.check_call(['brew', 'bundle', '--file=%s' % (tf.name,)])
+
+    @staticmethod
+    def pacakge_is_installed(pkg):
+        r = subprocess.call(['brew', 'list', pkg], stdout=subprocess.DEVNULL)
+        return (r == 0)
+
+class FedoraPackageOps:
+    @staticmethod
+    def package_install(pkgs):
+        subprocess.check_call(['dnf', 'install', '-y'] + pkgs)
+
+    @staticmethod
+    def package_is_installed(pkg):
+        r = subprocess.call(['rpm', '-q', pkg], stdout=subprocess.DEVNULL)
+        return (r == 0)
+
+def brew_bundle_install(filename):
+    # https://github.com/Homebrew/homebrew-bundle#usage
+    subprocess.check_call(['brew', 'bundle', '--file', filename])
 
 def rpm_urls_file_install(filename):
     with open(filename) as f:
         lines = f.readlines()
     urls = [ x[:-1] for x in lines_strip_comments(lines) ]
     subprocess.check_call(['dnf', 'install', '-y'] + urls)
-
-def package_is_installed(pkg):
-    r = subprocess.call(['rpm', '-q', pkg], stdout=subprocess.DEVNULL)
-    return (r == 0)
 
 def fedora_version_get():
     '-> "28"'

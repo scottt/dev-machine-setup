@@ -1,0 +1,6 @@
+name: dev-machine-setup
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pyyaml
