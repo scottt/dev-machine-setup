@@ -8,6 +8,7 @@ import pwd
 
 import devsetup
 import docker_nonroot
+import user_config_files
 
 DEBUG = 2
 
@@ -28,10 +29,12 @@ def main():
         devsetup.brew_bundle_install('dev.brew-bundle')
         devsetup.brew_bundle_install('ui.brew-bundle')
         devsetup.brew_bundle_install('com.brew-bundle')
-
-    docker_nonroot.setup(uids[0])
-    
-    # TODO: copy config/
+        docker_nonroot.setup(uids[0])
+    # add to /etc/shells, chsh root
+    subprocess.run(['sudo', './chsh-bash'], check=True)
+    # chsh normal user
+    subprocess.run(['./chsh-bash'], check=True)
+    user_config_files.copy()
 
 if __name__ == '__main__':
     main()
