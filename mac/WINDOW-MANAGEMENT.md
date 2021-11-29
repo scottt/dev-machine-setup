@@ -12,6 +12,11 @@ New Mac Hardware & OS Support: https://github.com/koekeishiya/yabai/issues/1035
 https://github.com/koekeishiya/skhd
 https://github.com/koekeishiya/yabai/wiki/Configuration#configuration-file
 
-## Configuration Files
-* See `config/`
-* Install into `$HOME/.config/{yabai,skhd}/{yabai,skhd}rc
+## Configuration
+
+### AltTab
+* Mac Menu Bar -> AltTab Icon -> Preferences... -> Controls Tab -> Shortcut 1 -> "Hold `Command` key"
+
+### Yabai and Skhd
+* See `config/...`
+* Install into `$HOME/.config/{yabai,skhd}/{yabai,skhd}rc`
