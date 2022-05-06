@@ -11,6 +11,7 @@ brew 'bash'
 # https://docs.brew.sh/Shell-Completion#configuring-completions-in-bash
 brew 'bash-completion@2'
 brew 'vimpager'
+brew 'tree'
 cask 'iterm2'
 cask 'visual-studio-code'
 cask 'google-chrome'
