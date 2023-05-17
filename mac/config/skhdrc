@@ -77,7 +77,9 @@
 # ############################################################### #
 
 # Open Terminal
-cmd - f3     : osascript $HOME/Library/iterm-new-window.scpt
+# Bring all windows to front, interferes with other work.
+# Replaced by: ITerm2 -> Preferences -> Hotkey -> Create deciated Hotkey Window
+# cmd - f3     : osascript $HOME/Library/iterm-new-window.scpt
 
 # focus window
 # alt - h : yabai -m window --focus west
