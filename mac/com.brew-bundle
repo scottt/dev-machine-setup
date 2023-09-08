@@ -5,6 +5,7 @@ cask "discord"
 cask "telegram" # overtake/TelegramSwift
 # telegram-desktop # cross platform: WebView based
 cask "signal"
+cask "whatsapp"
 cask "vlc"
 # whichspace: shows virtual desktop number in top menu bar
 cask "whichspace"
