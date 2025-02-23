@@ -4,4 +4,5 @@ htop iotop nethogs
 strace ltrace 
 gitk git-gui
 kdiff3
-chrome-gnome-shell
+gnome-browser-connector
+python3-ipython

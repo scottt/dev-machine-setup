@@ -9,8 +9,8 @@
 # Settings -> Region & Language -> (Chewing) -> Gear icon
 -org.freedesktop.IBus.Chewing show-systray true
 +org.freedesktop.IBus.Chewing show-systray false
--org.freedesktop.IBus.Chewing shift-toggle-chinese true
-+org.freedesktop.IBus.Chewing shift-toggle-chinese false
+# -org.freedesktop.IBus.Chewing shift-toggle-chinese true
+# +org.freedesktop.IBus.Chewing shift-toggle-chinese false
 -org.freedesktop.IBus.Chewing kb-type 'default'
 +org.freedesktop.IBus.Chewing kb-type 'hsu'
 -org.freedesktop.IBus.Chewing sel-keys '1234567890'

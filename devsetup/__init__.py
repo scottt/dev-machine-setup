@@ -11,6 +11,10 @@ import shutil
 import tempfile
 
 import yaml
+try:
+    from yaml import CLoader as YamlLoader
+except ImportError:
+    from yaml import Loader as YamlLoader
 
 from .gsettings import gsettings_patch_apply
 from .dbus import dbus_user_session_run
@@ -103,7 +107,7 @@ class MacPackageOps:
 class FedoraPackageOps:
     @staticmethod
     def package_install(pkgs):
-        subprocess.check_call(['dnf', 'install', '-y'] + pkgs)
+        subprocess.check_call(['dnf', 'install', '-y', '--skip-unavailable'] + pkgs)
 
     @staticmethod
     def package_is_installed(pkg):
@@ -163,7 +167,7 @@ def repo_and_packages_install(repo_and_packages, target_arch):
 
 def repo_and_packages_file_install(filename, target_arch):
     with open(filename) as f:
-        repo_and_packages = yaml.load(f)
+        repo_and_packages = yaml.load(f, YamlLoader)
 
     repo_and_packages_install(repo_and_packages, target_arch)
 

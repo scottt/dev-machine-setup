@@ -11,5 +11,5 @@ make conda-env
 ```
 make shell
 cd {fedora|mac}
-./setup-all
+sudo ./setup-all
 ```

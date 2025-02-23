@@ -22,12 +22,6 @@
 # Tweaks -> Windows -> Titlebar Buttons
 -org.gnome.desktop.wm.preferences button-layout 'appmenu:close'
 +org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
-# Tweaks -> Workspaces ->  Dynamic Workspaces
--org.gnome.shell.overrides dynamic-workspaces true
-+org.gnome.shell.overrides dynamic-workspaces false
-# Tweaks -> Workspaces ->  Display Handling (Workspace on primary display only, Workspaces span displays)
--org.gnome.shell.overrides workspaces-only-on-primary true
-+org.gnome.shell.overrides workspaces-only-on-primary false
 # Files (nautilus)
 -org.gnome.nautilus.window-state start-with-sidebar true
 +org.gnome.nautilus.window-state start-with-sidebar false
@@ -36,3 +30,11 @@
 # Terminal (gnome-terminal)
 -org.gnome.Terminal.Legacy.Settings default-show-menubar true
 +org.gnome.Terminal.Legacy.Settings default-show-menubar false
+
+
+# Settings -> Multitasking
+-org.gnome.mutter dynamic-workspaces true
++org.gnome.mutter dynamic-workspaces false
+# Settings -> Multitasking
+-org.gnome.mutter workspaces-only-on-primary true
++org.gnome.mutter workspaces-only-on-primary false

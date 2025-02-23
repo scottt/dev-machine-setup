@@ -122,7 +122,8 @@ def gvariant_serialize(value):
         return json.dumps(value)
 
 def gsettings_set(schema, key, value):
-    subprocess.check_call(['gsettings', 'set', schema, key, gvariant_serialize(value)])
+    # allow this to fail
+    subprocess.call(['gsettings', 'set', schema, key, gvariant_serialize(value)])
 
 def gsettings_get(schema, key):
     p = subprocess.Popen(['gsettings', 'get', schema, key], stdout=subprocess.PIPE)

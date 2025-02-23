@@ -25,9 +25,10 @@ def main():
 
     target_arch = os.uname().machine
 
-    if 0:
-        devsetup.package_list_install('dev.packages', target_arch)
-        devsetup.package_list_install('rpmfusion.packages', target_arch)
+    devsetup.repo_and_packages_file_install('vscode.repo-and-packages', target_arch)
+    devsetup.sysctl_file_install(os.path.join('sysctl.d', '99-inotify-max-user-watches.conf'))
+    devsetup.package_list_file_install('dev.packages', target_arch)
+    devsetup.package_list_file_install('rpmfusion.packages', target_arch)
 
     if DEBUG > 1:
         print('users: %r' % (users,))

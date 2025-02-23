@@ -7,7 +7,7 @@ import subprocess
 import devsetup
 
 def install(target_arch):
-    devsetup.package_list_install('input-method.packages', target_arch)
+    devsetup.package_list_file_install('input-method.packages', target_arch)
 
 def setup(target_arch, username):
     install(target_arch)
