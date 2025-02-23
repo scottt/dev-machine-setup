@@ -1,0 +1,94 @@
+# .bashrc
+
+# User specific aliases and functions
+export HISTSIZE=200000
+# ignoreboth equals ignoredups and ignorespace
+# the latter is used like an "incognito mode" for the shell
+export HISTCONTROL=ignoreboth
+
+alias py='python'
+alias ipy='ipython'
+alias py2='python2'
+alias ipy2='ipython2'
+alias py3='python3'
+alias ipy3='ipython3'
+alias ipym='ipython3 -c "from math import *" -i'
+
+# Copied from http://www.pixelbeat.org/settings/.bashrc
+# Use vim to browse man pages. One can use Ctrl-[ and Ctrl-t
+# to browse and return from referenced man pages. ZZ or q to quit.
+# Note initially within vim, one can goto the man page for the
+# word under the cursor by using [section_number]K.
+# Note we use bash explicitly here to support process substitution
+# which in turn suppresses the "Vim: Reading from stdin..." warning.
+export MANPAGER='bash -c "vim -MRn -c \"set ft=man nomod nolist nospell nonu\" \
+-c \"nm q :qa!<CR>\" -c \"nm <end> G\" -c \"nm <home> gg\"</dev/tty <(col -b)"'
+#export MANPAGER='most'
+# GROFF_NO_SGR is required with man-db which uses grotty to
+# output SGR codes by default when attached to a terminal.
+# We want vim to highlight the raw text, so disable that feature.
+# Also see MANPAGER in my .vimrc for extra handling to support
+# ctrl-[ with man-db
+export GROFF_NO_SGR=1
+# Another option is to use $VIMRUNTIME/macros/less.sh
+# though I find that less effective
+
+alias backtrace=gdb-backtrace
+alias bt=gdb-backtrace
+alias gdb='gdb -q'
+alias cgdb='cgdb -q'
+
+# grep
+alias egrep='egrep --color=tty -d skip'
+alias egrpe='egrep --color=tty -d skip'
+alias fgrep='fgrep --color=tty -d skip'
+alias fgrpe='fgrep --color=tty -d skip'
+alias grep='grep --color=tty -d skip'
+alias grpe='grep --color=tty -d skip'
+alias pcregrep='pcregrep --color=auto -d skip'
+alias pcregrpe='pcregrep --color=auto -d skip'
+
+# tree color output
+# alias tree='tree -C'
+
+# readline
+export INPUTRC=$HOME/.inputrc
+
+mkcd() {
+	case $# in
+	1) local D=$1 ;;
+	*) printf 'usage: mkcd DIR-NAME\n'>&2 ; return 2 ;;
+	esac
+	mkdir -p $D
+	cd $D
+}
+
+# A .env file can e.g.
+# $ pathvar-prepend PATH $PREFIX/bin
+# $ pathvar-prepend LD_LIBRARY_PATH $PREFIX/ld
+pathvar-prepend() {
+	case $# in
+	2) local V=$1; local D=$2 ;;
+	*) printf 'usage: pathvar-prepend VAR_NAME DIR\n'>&2; return 2 ;;
+	esac
+	export $V="$D":${!V}
+	# printf 'pathvar-prepend %s \"%s\"\n%s: %s\n' $V $D $V ${!V}
+}
+
+pathvar-append() {
+	case $# in
+	2) local V=$1; local D=$2 ;;
+	*) printf 'usage: pathvar-append VAR_NAME DIR\n'>&2; return 2 ;;
+	esac
+	export $V=${!V}:"$D"
+	# printf 'pathvar-append %s \"%s\"\n%s: %s\n' $V $D $V ${!V}
+}
+
+pathvar-prepend PATH $HOME/bin
+# Python distutils install binaries to $HOME/.local/bin
+pathvar-prepend PATH $HOME/.local/bin
+
+# software environments
+for i in $HOME/environments/*.env; do
+	source $i
+done

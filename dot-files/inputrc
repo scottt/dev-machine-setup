@@ -1,0 +1,48 @@
+$include /etc/inputrc
+
+# see http://www.catonmat.net/download/bash-vi-editing-mode-cheat-sheet.pdf
+set editing-mode vi
+# see also:
+# bind -p -m vi-command
+# bind -p -m vi-insert
+
+set show-all-if-ambiguous on
+# a character denoting a file's type is appended to the filename when listing possible completions
+set visible-stats on
+
+# readline configuration debugging
+#"\C-x\C-v": dump-variables
+#"\C-x\C-f": dump-functions
+#"\C-x\C-m": dump-macros
+
+# mostly for gdb -tui, see: http://sourceware.org/bugzilla/show_bug.cgi?id=11393
+$if mode=vi
+	"\C-x\C-j": emacs-editing-mode
+$else
+	"\C-x\C-j": vi-editing-mode
+$endif
+
+# keycodes:
+# up / down arrow: "\e[A" "\e[B"
+# pageup / down:   "\e[5~", "\e[6~"
+
+# history search
+# $ cd<UP> # or <Alt>p
+# and get history that starts with 'cd'
+$if mode=vi
+	"\e[A": history-search-backward
+	"\e[B": history-search-forward
+	"\ep": history-search-backward
+	"\en": history-search-forward
+$endif
+
+# yanking, i.e. pasting
+# note also "_" is bound to vi-yank-arg in command mode
+$if mode=vi
+	set keymap vi-command
+	"yn":yank-nth-arg
+	"yl":yank-last-arg
+	"yp":yank-pop
+	set keymap vi-insert
+	"\el":yank-last-arg
+$endif
