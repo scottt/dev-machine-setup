@@ -162,8 +162,9 @@ def repo_and_packages_install(repo_and_packages, target_arch):
         shutil.copy2(repo_file, DNF_REPO_DIR)
 
     packages = repo_and_packages.get('packages')
+    pkg_ops = PackageOps()
     if packages is not None:
-        package_install(package_list_translate(packages, target_arch))
+        pkg_ops.package_install(package_list_translate(packages, target_arch))
 
 def repo_and_packages_file_install(filename, target_arch):
     with open(filename) as f:
