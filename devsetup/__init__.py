@@ -84,7 +84,14 @@ def package_list_file_install(filename, target_arch):
 
 def PackageOps():
     if sys.platform.startswith('linux'): # TODO: error out on non-DNF distros
-        return FedoraPackageOps
+        with open('/etc/os-release') as f:
+            os_release_str = f.read()
+        if 'VARIANT="Silverblue"' in os_release_str:
+            return SilverbluePackageOps
+        elif 'Name="Fedora"' in os_release_str:
+            return FedoraPackageOps
+        else:
+            raise RuntimeError(f'Unsupported OS: "{sys.platform}", os_release:\n{os_release_str}')
     elif sys.platform.startswith('darwin'):
         return MacPackageOps
     else:
@@ -108,6 +115,18 @@ class FedoraPackageOps:
     @staticmethod
     def package_install(pkgs):
         subprocess.check_call(['dnf', 'install', '-y', '--skip-unavailable'] + pkgs)
+
+    @staticmethod
+    def package_is_installed(pkg):
+        r = subprocess.call(['rpm', '-q', pkg], stdout=subprocess.DEVNULL)
+        return (r == 0)
+
+class SilverbluePackageOps:
+    # After DNF5 integrates rpm-ostree functions, we could just use `dnf`
+    # https://fedoraproject.org/wiki/Changes/DNFAndBootcInImageModeFedora
+    @staticmethod
+    def package_install(pkgs):
+        subprocess.check_call(['rpm-ostree', 'install', '-y', '--allow-inactive'] + pkgs)
 
     @staticmethod
     def package_is_installed(pkg):
@@ -177,3 +196,9 @@ def sysctl_file_install(filename):
     # user_home_t vs. etc_t
     shutil.copy(filename, '/etc/sysctl.d')
     subprocess.check_call(['systemctl', 'restart', 'systemd-sysctl.service'])
+
+def autostart_remove(filename):
+    autostart_dir = os.path.expanduser('~/.config/autostart')
+    with open(filename) as fin:
+        for i in fin.readlines():
+            os.unlink(os.path.join(autostart_dir, i.strip()))

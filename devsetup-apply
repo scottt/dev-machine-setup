@@ -14,6 +14,7 @@ from devsetup import (
         rpm_urls_file_install,
         sysctl_file_install,
         brew_bundle_install,
+        autostart_remove,
 #        rpm_key_check_and_import,
 #        package_urls_install,
 )
@@ -35,6 +36,7 @@ file_extension_to_action = {
     '.rpm-urls':                    (rpm_urls_file_install,          None),
     '.conf':                        (sysctl_file_install,            None),
     '.brew-bundle':                 (brew_bundle_install,            None),
+    '.remove-autostart':            (autostart_remove,               None),
 #    '.rpm-key-url-and-fingerprint': (rpm_key_check_and_import, 'target_arch'), # RPM signing keys
 #    '.repo-rpm-urls':               (package_urls_install,     'target_arch'),
 }
@@ -62,7 +64,7 @@ def main():
         elif n_args == 1:
             target_arch = args[0]
         else:
-            sys.stderr.write('%s: filetype %r doesn\t take additional arguments\n' % (program_name(), ext))
+            sys.stderr.write("%s: filetype %r doesn't take additional arguments\n" % (program_name(), ext))
             sys.exit(2)
         function(filename, target_arch)
     elif arg_type == 'users':
