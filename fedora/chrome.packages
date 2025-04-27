@@ -1,0 +1,6 @@
+google-chrome-stable
+
+# For Bazzite, edit /etc/yum.repos.d/google-chrome.repo, change:
+# enabled=1
+# gpgcheck=0
+# the GPG check is due to RPM no longer accepting the older format Google uses
