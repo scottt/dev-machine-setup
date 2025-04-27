@@ -1,8 +1,16 @@
-/usr/bin/vimx                       # vim with X11 clipboard support
-nss-mdns.__ARCHS_IN_REPO_FOR_CPU__  # MDNS .local domain resolution
+/usr/bin/vimx                       # vim with X11 clipboard support, waiting for Wayland
+fzf
 htop iotop nethogs
+nss-mdns.__ARCHS_IN_REPO_FOR_CPU__  # MDNS .local domain resolution
 strace ltrace 
-gitk git-gui
+gitk git-gui git-lfs
 kdiff3
-gnome-browser-connector
 python3-ipython
+
+# From https://github.com/ublue-os/bazzite-dx/blob/main/build_files/20-install-apps.sh
+bcc
+bpftrace
+bpftop
+nicstat
+tiptop
+sysprof
