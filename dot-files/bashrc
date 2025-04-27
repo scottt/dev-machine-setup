@@ -1,5 +1,10 @@
 # .bashrc
 
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
 # User specific aliases and functions
 export HISTSIZE=200000
 # ignoreboth equals ignoredups and ignorespace
@@ -88,7 +93,19 @@ pathvar-prepend PATH $HOME/bin
 # Python distutils install binaries to $HOME/.local/bin
 pathvar-prepend PATH $HOME/.local/bin
 
-# software environments
-for i in $HOME/environments/*.env; do
-	source $i
-done
+# Software Environments
+
+# Stop bash printing "No such file or directory" when glob pattern matches nothing
+environments_load() {
+	local old_nullglob=$(shopt -p nullglob)
+	shopt -s nullglob
+	for i in $HOME/environments/*.env; do
+		source $i
+	done
+	$old_nullglob # restore nulglob state
+}
+
+environments_load
+
+export EDITOR=vim
+. "$HOME/.cargo/env"
