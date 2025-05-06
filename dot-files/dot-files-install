@@ -4,13 +4,20 @@ import os
 import sys
 import shutil
 import glob
+from pathlib import Path
 
 def make_dirs(p):
     os.makedirs(p, exist_ok=True)
 
+def copy_file(p, dest_p):
+    try:
+        shutil.copy(p, dest_p)
+    except shutil.SameFileError:
+        pass
+
 def copy_star(glob_pat, dest_p):
     for p in glob.glob(glob_pat):
-        shutil.copy(p, dest_p)
+        copy_file(p, dest_p)
 
 def program_name():
     return os.path.basename(sys.argv[0])
@@ -24,10 +31,13 @@ def main(args):
         sys.exit(2) 
 
     make_dirs(os.path.expanduser('~/environments'))
-    shutil.copy(os.path.join(dot_files_dir, 'inputrc'), os.path.expanduser('~/.inputrc'))
-    shutil.copy(os.path.join(dot_files_dir, 'bashrc'), os.path.expanduser('~/.bashrc'))
+    copy_file(os.path.join(dot_files_dir, 'inputrc'), os.path.expanduser('~/.inputrc'))
+    copy_file(os.path.join(dot_files_dir, 'bashrc'), os.path.expanduser('~/.bashrc'))
     copy_star(os.path.join('..', system_name, 'environments', '*'),
               os.path.expanduser('~/environments'))
+    wezterm_config_dir = Path(os.path.expanduser('~/.config/wezterm'))
+    wezterm_config_dir.mkdir(parents=True, exist_ok=True)
+    copy_file('wezterm.lua', wezterm_config_dir / 'wezterm.lua')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
