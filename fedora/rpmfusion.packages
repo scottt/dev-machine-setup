@@ -1,10 +1,12 @@
 unrar
-# dropbox
 mpv
 celluloid
-# vlc
+vlc
+gstreamer1-libav gstreamer1-plugins-ugly
+libva-intel-driver.__ARCHS_IN_REPO_FOR_CPU__
+
+# dropbox
+#
 # https://forums.fedoraforum.org/showthread.php?317721-fedora-28-and-firefox-video(h264-youtube-gstreamer1)
 #  Test browsers on https://www.youtube.com/html5
 # compat-ffmpeg28  # For firefox on Fedora 28
-gstreamer1-libav gstreamer1-plugins-ugly
-libva-intel-driver.__ARCHS_IN_REPO_FOR_CPU__
