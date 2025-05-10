@@ -16,3 +16,5 @@
 +org.gnome.desktop.wm.keybindings move-to-workspace-3 ['<Primary><Shift><Alt>k']
 -org.gnome.desktop.wm.keybindings move-to-workspace-4 @as []
 +org.gnome.desktop.wm.keybindings move-to-workspace-4 ['<Primary><Shift><Alt>l']
+
+# TODO: remove Gnome 42 "Screenshot" <Shift>Print keybinding
