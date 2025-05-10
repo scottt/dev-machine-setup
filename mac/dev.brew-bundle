@@ -8,6 +8,7 @@ brew 'gnu-indent'
 brew 'git'
 brew 'git-gui'
 brew 'bash'
+brew 'ncdu' # disk usage analysis
 # https://docs.brew.sh/Shell-Completion#configuring-completions-in-bash
 brew 'bash-completion@2'
 brew 'vimpager'
