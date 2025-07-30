@@ -33,6 +33,8 @@ def main(args):
     make_dirs(os.path.expanduser('~/environments'))
     copy_file(os.path.join(dot_files_dir, 'inputrc'), os.path.expanduser('~/.inputrc'))
     copy_file(os.path.join(dot_files_dir, 'bashrc'), os.path.expanduser('~/.bashrc'))
+    copy_file(os.path.join(dot_files_dir, 'gdbinit'), os.path.expanduser('~/.gdbinit'))
+    copy_file(os.path.join(dot_files_dir, 'vimrc'), os.path.expanduser('~/.vimrc'))
     copy_star(os.path.join('..', system_name, 'environments', '*'),
               os.path.expanduser('~/environments'))
     wezterm_config_dir = Path(os.path.expanduser('~/.config/wezterm'))

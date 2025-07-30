@@ -9,7 +9,7 @@
 +org.gnome.desktop.wm.keybindings switch-to-workspace-4 ['<Shift><Alt>l']
 # move window between workspaces
 -org.gnome.desktop.wm.keybindings move-to-workspace-1 ['<Super><Shift>Home']
-+org.gnome.desktop.wm.keybindings move-to-workspace-1 ['<Primary><Shift><Alt>h']
++org.gnome.desktop.wm.keybindings move-to-workspace-1 ['<Shift><Control><Alt>h']
 -org.gnome.desktop.wm.keybindings move-to-workspace-2 @as []
 +org.gnome.desktop.wm.keybindings move-to-workspace-2 ['<Primary><Shift><Alt>j']
 -org.gnome.desktop.wm.keybindings move-to-workspace-3 @as []

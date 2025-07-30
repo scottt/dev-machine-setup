@@ -15,6 +15,7 @@ from devsetup import (
         sysctl_file_install,
         brew_bundle_install,
         autostart_remove,
+        dconf_custom_shortcut_dump_apply,
 #        rpm_key_check_and_import,
 #        package_urls_install,
 )
@@ -37,6 +38,7 @@ file_extension_to_action = {
     '.conf':                        (sysctl_file_install,            None),
     '.brew-bundle':                 (brew_bundle_install,            None),
     '.remove-autostart':            (autostart_remove,               None),
+    '.dconf-custom-keybinding':     (dconf_custom_shortcut_dump_apply, None),
 #    '.rpm-key-url-and-fingerprint': (rpm_key_check_and_import, 'target_arch'), # RPM signing keys
 #    '.repo-rpm-urls':               (package_urls_install,     'target_arch'),
 }

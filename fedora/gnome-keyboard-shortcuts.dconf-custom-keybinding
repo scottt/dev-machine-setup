@@ -1,0 +1,24 @@
+[custom0]
+binding='<Control><Alt>t'
+command='wezterm-gui start --always-new-process'
+name='Terminal'
+
+[custom1]
+binding='<Alt>F3'
+command='/usr/bin/ptyxis --new-window'
+name='Ptyxis Terminal'
+
+[custom2]
+binding='<Super>F2'
+command='flatpak run org.gnome.TextEditor'
+name='Text Editor'
+
+[custom3]
+binding='<Super>e'
+command='nautilus'
+name='File Manager'
+
+[custom4]
+binding='<Control><Shift>Escape'
+command='flatpak run io.missioncenter.MissionCenter'
+name='Mission Center'

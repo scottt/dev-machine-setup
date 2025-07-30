@@ -202,3 +202,33 @@ def autostart_remove(filename):
     with open(filename) as fin:
         for i in fin.readlines():
             os.unlink(os.path.join(autostart_dir, i.strip()))
+
+def dconf_parse_number_of_custom_shortcut_from_dump(text):
+    n_shortcuts = 0
+    for i in text.split('\n'):
+        # [custom0]
+        if i.startswith('[custom') and i.endswith(']'):
+            digits = i[len('[custom'):-1]
+            n = int(digits)
+            n_shortcuts = max(n_shortcuts, n)
+    return n_shortcuts
+
+def dconf_custom_shortcut_dump_apply(filename):
+    with open(filename) as fin:
+        n = dconf_parse_number_of_custom_shortcut_from_dump(fin.read())
+    out = ['''[org/gnome/settings-daemon/plugins/media-keys]
+custom-keybindings=[''',]
+# custom-keybindings=['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/']
+    lines = [ ("'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom%d/'" % x) for x in range(n) ]
+    out.append(','.join(lines))
+    out.append(']\n')
+    dconf_n_shortcuts_text = ''.join(out)
+    with tempfile.TemporaryFile(mode='w+') as tf:
+        tf.write(dconf_n_shortcuts_text)
+        tf.seek(0)
+        subprocess.check_call(['dconf', 'load', '/org/gnome/settings-daemon/plugins/media-keys/'],
+                              stdin=tf)
+        
+    with open(filename) as fin:
+        subprocess.check_call(['dconf', 'load', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/'],
+                              stdin=fin)

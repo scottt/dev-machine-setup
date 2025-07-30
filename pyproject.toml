@@ -1,0 +1,9 @@
+[project]
+name = "dev-machine-setup"
+version = "0.1.0"
+description = "Setup a mchine for software development"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "PyYAML",
+]

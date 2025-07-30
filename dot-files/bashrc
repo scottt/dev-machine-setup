@@ -106,6 +106,3 @@ environments_load() {
 }
 
 environments_load
-
-export EDITOR=vim
-. "$HOME/.cargo/env"
