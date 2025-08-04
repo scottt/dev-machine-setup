@@ -16,5 +16,8 @@
 +org.gnome.desktop.wm.keybindings move-to-workspace-3 ['<Primary><Shift><Alt>k']
 -org.gnome.desktop.wm.keybindings move-to-workspace-4 @as []
 +org.gnome.desktop.wm.keybindings move-to-workspace-4 ['<Primary><Shift><Alt>l']
+# mouse modifier to move and resize windows
+-org.gnome.desktop.wm.preferences mouse-button-modifier '<Super>'
++org.gnome.desktop.wm.preferences mouse-button-modifier '<Alt>'
 
 # TODO: remove Gnome 42 "Screenshot" <Shift>Print keybinding
