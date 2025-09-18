@@ -9,6 +9,7 @@ import subprocess
 import pwd
 import shutil
 import tempfile
+from pathlib import Path
 
 import yaml
 try:
@@ -201,7 +202,7 @@ def autostart_remove(filename):
     autostart_dir = os.path.expanduser('~/.config/autostart')
     with open(filename) as fin:
         for i in fin.readlines():
-            os.unlink(os.path.join(autostart_dir, i.strip()))
+            Path(os.path.join(autostart_dir, i.strip())).unlink(missing_ok=True)
 
 def dconf_parse_number_of_custom_shortcut_from_dump(text):
     n_shortcuts = 0
