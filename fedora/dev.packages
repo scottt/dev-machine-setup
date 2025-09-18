@@ -7,6 +7,9 @@ gitk git-gui git-lfs
 kdiff3
 python3-ipython
 
+# devcontainers
+toolbox
+
 # From https://github.com/ublue-os/bazzite-dx/blob/main/build_files/20-install-apps.sh
 bcc
 bpftrace
