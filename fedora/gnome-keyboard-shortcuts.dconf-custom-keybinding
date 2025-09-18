@@ -1,24 +1,27 @@
-[custom0]
+[plugins/media-keys/custom-keybindings/custom0]
 binding='<Control><Alt>t'
 command='wezterm-gui start --always-new-process'
 name='Terminal'
 
-[custom1]
+[plugins/media-keys/custom-keybindings/custom1]
 binding='<Alt>F3'
 command='/usr/bin/ptyxis --new-window'
 name='Ptyxis Terminal'
 
-[custom2]
+[plugins/media-keys/custom-keybindings/custom2]
 binding='<Super>F2'
 command='flatpak run org.gnome.TextEditor'
 name='Text Editor'
 
-[custom3]
+[plugins/media-keys/custom-keybindings/custom3]
 binding='<Super>e'
 command='nautilus'
 name='File Manager'
 
-[custom4]
+[plugins/media-keys/custom-keybindings/custom4]
 binding='<Control><Shift>Escape'
 command='flatpak run io.missioncenter.MissionCenter'
 name='Mission Center'
+
+[plugins/media-keys]
+custom-keybindings=['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/']
