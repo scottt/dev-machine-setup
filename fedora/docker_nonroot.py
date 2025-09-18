@@ -26,11 +26,12 @@ def username_from_uid(uid):
 
 def docker_nonroot_setup(username):
     # https://developer.fedoraproject.org/tools/docker/docker-installation.html
+    #
+    # Assume installing Docker (moby-engine) from Fedora's repositories
+    # https://docs.fedoraproject.org/en-US/quick-docs/installing-docker/
     pkg_ops = devsetup.PackageOps()
-    pkg_ops.package_install(['docker'])
+    pkg_ops.package_install(['docker-cli', 'containerd', 'docker-compose'])
     subprocess.check_call(['systemctl', 'enable', 'docker'])
-    subprocess.check_call(['systemctl', 'start', 'docker'])
-
     subprocess.check_call(['systemctl', 'start', 'docker'])
 
     groups = groups_containing_user(username)
