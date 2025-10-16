@@ -1,5 +1,0 @@
-[{ "name": "Terminal", "binding": "<Alt>F3",   "command": "gnome-terminal"},
- { "name": "Editor",   "binding": "<Super>F2", "command": "gedit"},
- { "name": "Files",    "binding": "<Super>e",  "command": "nautilus"},
- { "name": "Screenshot Selected Region",    "binding": "<Shift>Print",  "command": "gnome-screenshot -a"},
-]

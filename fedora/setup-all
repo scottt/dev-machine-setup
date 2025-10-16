@@ -40,7 +40,7 @@ def main():
 
     devsetup.gsettings_patch_apply('gnome-tweaks.gsettings-patch', users)
     devsetup.gsettings_patch_apply('gnome-appearance.gsettings-patch', users)
-    devsetup.gnome_custom_keybindings_apply('dev.gnome-custom-keybinding', uids)
+    # devsetup.gnome_custom_keybindings_apply('dev.gnome-custom-keybinding', uids)
 
 if __name__ == '__main__':
     main()
