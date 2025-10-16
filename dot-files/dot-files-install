@@ -11,7 +11,7 @@ def make_dirs(p):
 
 def copy_file(p, dest_p):
     try:
-        shutil.copy(p, dest_p)
+        shutil.copy2(p, dest_p, follow_symlinks=False)
     except shutil.SameFileError:
         pass
 
@@ -37,9 +37,14 @@ def main(args):
     copy_file(os.path.join(dot_files_dir, 'vimrc'), os.path.expanduser('~/.vimrc'))
     copy_star(os.path.join('..', system_name, 'environments', '*'),
               os.path.expanduser('~/environments'))
+
     wezterm_config_dir = Path(os.path.expanduser('~/.config/wezterm'))
     wezterm_config_dir.mkdir(parents=True, exist_ok=True)
     copy_file('wezterm.lua', wezterm_config_dir / 'wezterm.lua')
+
+    mpv_config_dir = Path(os.path.expanduser('~/.config/mpv'))
+    mpv_config_dir.mkdir(parents=True, exist_ok=True)
+    copy_file('mpv-input.conf', mpv_config_dir / 'input.conf')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
