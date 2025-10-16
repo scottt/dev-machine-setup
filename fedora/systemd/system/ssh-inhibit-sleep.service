@@ -1,0 +1,12 @@
+[Unit]
+Description=Check for running SSH sessions and, if any, inhibit sleep
+Before=sleep.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '! who | grep -q sshd'
+
+[Install]
+RequiredBy=sleep.target
+
+# Adapted for Wayland from https://askubuntu.com/a/521629
