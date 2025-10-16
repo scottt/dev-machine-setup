@@ -127,7 +127,7 @@ class SilverbluePackageOps:
     # https://fedoraproject.org/wiki/Changes/DNFAndBootcInImageModeFedora
     @staticmethod
     def package_install(pkgs):
-        subprocess.check_call(['rpm-ostree', 'install', '-y', '--allow-inactive'] + pkgs)
+        subprocess.check_call(['rpm-ostree', 'install', '-y', '--idempotent', '--allow-inactive'] + pkgs)
 
     @staticmethod
     def package_is_installed(pkg):
@@ -237,3 +237,6 @@ custom-keybindings=[''',]
 def dconf_custom_shortcut_dump_apply(filename):
     with open(filename) as fin:
         subprocess.check_call(['dconf', 'load', '/org/gnome/settings-daemon/'], stdin=fin)
+
+def dconf_write(key, value):
+    subprocess.check_call(['dconf', 'write', key, value])
