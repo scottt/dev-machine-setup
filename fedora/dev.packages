@@ -7,6 +7,12 @@ gitk git-gui git-lfs
 kdiff3
 python3-ipython
 
+# Python toolchain and package management
+uv
+
+# Rust toolchain and package management
+rustup
+
 # devcontainers
 toolbox
 
