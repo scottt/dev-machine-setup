@@ -22,21 +22,25 @@ def copy_star(glob_pat, dest_p):
 def program_name():
     return os.path.basename(sys.argv[0])
 
+def is_unix():
+    # os.name == 'nt' for Windows
+    return os.name == 'posix'
+
+def is_macos():
+    return sys.platform == 'darwin'
+
 def main(args):
     dot_files_dir = '.'
-    try:
-        (system_name,) = args
-    except ValueError:
-        sys.stderr.write('usage: %s fedora|mac\n' % (program_name(),))
-        sys.exit(2) 
 
-    make_dirs(os.path.expanduser('~/environments'))
-    copy_file(os.path.join(dot_files_dir, 'inputrc'), os.path.expanduser('~/.inputrc'))
-    copy_file(os.path.join(dot_files_dir, 'bashrc'), os.path.expanduser('~/.bashrc'))
-    copy_file(os.path.join(dot_files_dir, 'gdbinit'), os.path.expanduser('~/.gdbinit'))
-    copy_file(os.path.join(dot_files_dir, 'vimrc'), os.path.expanduser('~/.vimrc'))
-    copy_star(os.path.join('..', system_name, 'environments', '*'),
-              os.path.expanduser('~/environments'))
+    if is_unix():
+        system_name = 'mac' if is_macos() else 'fedora'
+        make_dirs(os.path.expanduser('~/environments'))
+        copy_file(os.path.join(dot_files_dir, 'inputrc'), os.path.expanduser('~/.inputrc'))
+        copy_file(os.path.join(dot_files_dir, 'bashrc'), os.path.expanduser('~/.bashrc'))
+        copy_file(os.path.join(dot_files_dir, 'gdbinit'), os.path.expanduser('~/.gdbinit'))
+        copy_file(os.path.join(dot_files_dir, 'vimrc'), os.path.expanduser('~/.vimrc'))
+        copy_star(os.path.join('..', system_name, 'environments', '*'),
+                os.path.expanduser('~/environments'))
 
     wezterm_config_dir = Path(os.path.expanduser('~/.config/wezterm'))
     wezterm_config_dir.mkdir(parents=True, exist_ok=True)

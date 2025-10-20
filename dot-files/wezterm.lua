@@ -4,10 +4,29 @@ local launch_menu = {}
 local act = wezterm.action
 local config = {}
 
+function str_ends_with(str, ending)
+  return ending == "" or str:sub(-#ending) == ending
+end
+
+function is_windows()
+  -- wezterm.target_triple == 'x86_64-pc-windows-msvc'
+  return str_ends_with(wezterm.target_triple, '-windows-msvc')
+end
+
+function file_exists(filename)
+  local f = io.open(filename, "r")
+  if f then
+    io.close(f)
+    return true
+  else
+    return false
+  end
+end
+
 -- In newer versions of wezterm, use the config_builder which will
 -- help provide clearer error messages
 if wezterm.config_builder then
-    config = wezterm.config_builder()
+  config = wezterm.config_builder()
 end
 
 config.enable_scroll_bar = true
@@ -68,6 +87,16 @@ config.keys = {
     key = '0',
     mods = 'ALT',
     action = act.ActivateTab(-1),
+  },
+  { -- Disable default `wezterm.action.ActivateCommandPalette` action for VIM
+    key = "p",
+    mods = "CTRL | SHIFT",
+    action = wezterm.action.DisableDefaultAssignment,
+  },
+  {
+    key = "P",
+    mods = "CTRL | SHIFT",
+    action = wezterm.action.DisableDefaultAssignment,
   },
 } 
 
@@ -212,42 +241,41 @@ config.harfbuzz_features = {"calt=0", "clig=0", "liga=0"}
 
 -- Windows PowerShell
 --  https://www.reddit.com/r/wezterm/comments/18l1fku/comment/l6ksiyu/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
-    -- Developer PowerShell for VS 2022
-    -- TODO: detect if Visual Studio is present
-    -- '$vsPath = &(Join-Path ${env:ProgramFiles(x86)} "/Microsoft Visual Studio/Installer/vswhere.exe") -property installationpath; Import-Module (Join-Path $vsPath "Common7/Tools/vsdevshell/Microsoft.VisualStudio.DevShell.dll"); Enter-VsDevShell -VsInstallPath $vsPath -SkipAutomaticLocation -DevCmdArguments "-arch=x64"',
-    config.default_prog = {
-      'powershell.exe',
-      '-noe',
-      '-c',
-      '& "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/Launch-VsDevShell.ps1" -Arch amd64',
+if is_windows() then
+  -- Developer PowerShell for VS 2022
+  -- '$vsPath = &(Join-Path ${env:ProgramFiles(x86)} "/Microsoft Visual Studio/Installer/vswhere.exe") -property installationpath; Import-Module (Join-Path $vsPath "Common7/Tools/vsdevshell/Microsoft.VisualStudio.DevShell.dll"); Enter-VsDevShell -VsInstallPath $vsPath -SkipAutomaticLocation -DevCmdArguments "-arch=x64"',
+  -- Using 'pwsh.exe' for "C:\Program Files\PowerShell\7\pwsh.exe"
+  -- Change to 'powershell.exe' for Windows PowerShell 5.1 "C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe"
+  config.default_prog = { 'pwsh.exe', }
+  if file_exists("C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/Launch-VsDevShell.ps1") then
+    table.insert(config.default_prog, "-noe")
+    table.insert(config.default_prog, "-c")
+    table.insert(config.default_prog, '& "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/Launch-VsDevShell.ps1" -Arch amd64')
 
-    }
     table.insert(launch_menu, {
       label = 'Developer PowerShell for VS 2022',
-      -- if on windows 10 replace for 'pwsh.exe'
       args = {
-        'powershell.exe',
+        'pwsh.exe',
         '-noe',
         '-c',
-        '& "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/Launch-VsDevShell.ps1"',
+        '& "C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/Launch-VsDevShell.ps1" -Arch amd64',
       },
     })
-    table.insert(launch_menu, {
-      label = 'PowerShell',
-      -- if on windows 10 replace for 'pwsh.exe'
-      args = { 'powershell.exe' },
-    })
-    config.launch_menu = launch_menu
+  end
+  table.insert(launch_menu, {
+    label = 'PowerShell',
+    args = { 'pwsh.exe' },
+  })
+  config.launch_menu = launch_menu
 end
 
 -- Windows ssh-agent
 -- https://github.com/wezterm/wezterm/discussions/3772#discussioncomment-7201688
-if wezterm.target_triple == 'x86_64-pc-windows-msvc' then
-    config.ssh_backend = "Ssh2"
-    -- Fix "Error connecting to agent : no such file or directory"
-    -- https://github.com/wezterm/wezterm/discussions/988#discussioncomment-9440847
-    config.mux_enable_ssh_agent = false
+if is_windows() then
+  config.ssh_backend = "Ssh2"
+  -- Fix "Error connecting to agent : no such file or directory"
+  -- https://github.com/wezterm/wezterm/discussions/988#discussioncomment-9440847
+  config.mux_enable_ssh_agent = false
 end
 
 return config
