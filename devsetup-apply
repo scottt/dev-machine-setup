@@ -52,7 +52,7 @@ def main():
     args = parser.parse_args()
     try:
         (filename, args) = (args.args[0], args.args[1:])
-    except ValueError:
+    except IndexError:
         sys.stderr.write('usage: %s FILE [ARGS ...]\n' % (program_name(),))
         sys.exit(2)
 
