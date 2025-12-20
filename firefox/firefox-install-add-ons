@@ -1,0 +1,247 @@
+#!/usr/bin/env python3
+import json
+import os
+import platform
+import re
+import subprocess
+from pathlib import Path
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
+
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:
+    raise SystemExit("ERROR: tomllib not found. Use Python 3.11+ (stdlib-only requirement).")
+
+AMO_API_ADDON = "https://addons.mozilla.org/api/v5/addons/addon/{slug}/"
+AMO_LATEST_XPI = "https://addons.mozilla.org/firefox/downloads/latest/{slug}/latest.xpi"
+
+FIREFOX_FLATPAK_APPIDS = ["org.mozilla.firefox", "org.mozilla.Firefox"]
+
+
+# ---------- generic helpers ----------
+
+def deep_merge(dst, src):
+    """Recursively merge src into dst (dicts only)."""
+    for k, v in src.items():
+        if isinstance(v, dict) and isinstance(dst.get(k), dict):
+            deep_merge(dst[k], v)
+        else:
+            dst[k] = v
+    return dst
+
+
+def load_json(path: Path):
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8")) or {}
+    except json.JSONDecodeError:
+        raise SystemExit(f"ERROR: Existing JSON is invalid: {path}")
+
+
+def save_json(path: Path, data: dict):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
+def http_get_json(url: str) -> dict:
+    req = Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "firefox-addon-policy-installer/1.0 (stdlib urllib)",
+        },
+        method="GET",
+    )
+    try:
+        with urlopen(req, timeout=20) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+            return json.loads(body)
+    except Exception as e:
+        raise RuntimeError(f"HTTP/JSON error for {url}: {e}") from e
+
+
+# ---------- AMO parsing + GUID lookup ----------
+
+def parse_amo_slug(addon_url: str) -> str:
+    """
+    Accepts URLs like:
+      https://addons.mozilla.org/en-US/firefox/addon/<slug>/
+    """
+    u = urlparse(addon_url)
+    if u.netloc != "addons.mozilla.org":
+        raise ValueError(f"Not an addons.mozilla.org URL: {addon_url}")
+
+    m = re.search(r"/firefox/addon/([^/]+)/?", u.path)
+    if not m:
+        raise ValueError(f"Could not extract add-on slug from URL: {addon_url}")
+    return m.group(1)
+
+
+def fetch_guid_for_slug(slug: str) -> str:
+    data = http_get_json(AMO_API_ADDON.format(slug=slug))
+    guid = data.get("guid")
+    if not guid:
+        raise RuntimeError(f"No guid found in AMO API response for slug={slug}")
+    return guid
+
+
+def build_extension_settings(addon_urls: list[str]) -> dict:
+    """
+    Returns ExtensionSettings map keyed by extension ID (guid).
+    """
+    extension_settings = {}
+    for addon_url in addon_urls:
+        slug = parse_amo_slug(addon_url)
+        guid = fetch_guid_for_slug(slug)
+        install_url = AMO_LATEST_XPI.format(slug=slug)
+        extension_settings[guid] = {
+            "installation_mode": "force_installed",
+            "install_url": install_url,
+            "default_area": "navbar",
+        }
+    return extension_settings
+
+
+# ---------- Linux Flatpak detection + policy path ----------
+
+def _run(cmd: list[str]) -> tuple[int, str]:
+    try:
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return p.returncode, (p.stdout or "").strip()
+    except FileNotFoundError:
+        return 127, ""
+
+
+def linux_flatpak_firefox_installed() -> str | None:
+    code, _ = _run(["flatpak", "--version"])
+    if code != 0:
+        return None
+    for appid in FIREFOX_FLATPAK_APPIDS:
+        code, _ = _run(["flatpak", "info", appid])
+        if code == 0:
+            return appid
+    return None
+
+
+def flatpak_arch() -> str:
+    code, arch = _run(["flatpak", "--default-arch"])
+    if code == 0 and arch:
+        return arch
+
+    m = platform.machine().lower()
+    if m in ("x86_64", "amd64"):
+        return "x86_64"
+    if m in ("aarch64", "arm64"):
+        return "aarch64"
+    return m or "x86_64"
+
+
+def linux_policy_path() -> Path:
+    """
+    Flatpak Firefox: use systemconfig extension policy location.
+    Non-Flatpak Firefox: /etc/firefox/policies/policies.json
+    """
+    appid = linux_flatpak_firefox_installed()
+    if appid:
+        arch = flatpak_arch()
+        branch = "stable"
+
+        sys_path = (
+            Path("/var/lib/flatpak/extension")
+            / "org.mozilla.firefox.systemconfig"
+            / arch
+            / branch
+            / "policies"
+            / "policies.json"
+        )
+
+        xdg_data_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share")))
+        user_path = (
+            xdg_data_home
+            / "flatpak"
+            / "extension"
+            / "org.mozilla.firefox.systemconfig"
+            / arch
+            / branch
+            / "policies"
+            / "policies.json"
+        )
+
+        # Root -> system-wide; non-root -> per-user
+        if hasattr(os, "geteuid") and os.geteuid() == 0:
+            return sys_path
+        return user_path
+
+    return Path("/etc/firefox/policies/policies.json")
+
+
+def candidate_policy_paths():
+    system = platform.system().lower()
+
+    if system == "linux":
+        yield linux_policy_path()
+        return
+
+    if system == "darwin":
+        yield Path("/Applications/Firefox.app/Contents/Resources/distribution/policies.json")
+        return
+
+    if system == "windows":
+        pf = os.environ.get("PROGRAMFILES", r"C:\Program Files")
+        pf86 = os.environ.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)")
+        for base in [pf, pf86]:
+            yield Path(base) / "Mozilla Firefox" / "distribution" / "policies.json"
+        return
+
+    raise SystemExit(f"Unsupported OS: {platform.system()}")
+
+
+def pick_policy_path() -> Path:
+    override = os.environ.get("FIREFOX_POLICY_PATH")
+    if override:
+        return Path(override)
+
+    candidates = list(candidate_policy_paths())
+    for p in candidates:
+        if p.exists():
+            return p
+    for p in candidates:
+        if p.parent.exists():
+            return p
+    return candidates[0]
+
+
+def firefox_install_add_ons():
+    import argparse
+
+    ap = argparse.ArgumentParser(
+        description="Force-install Firefox add-ons from a TOML list via Enterprise Policies (stdlib only)."
+    )
+    ap.add_argument("add_ons_toml", default="firefox-add-ons.toml", help="Path to TOML file (default: firefox-add-ons.toml)")
+    args = ap.parse_args()
+
+    toml_path = Path(args.add_ons_toml)
+    if not toml_path.exists():
+        raise SystemExit(f"ERROR: TOML file not found: {toml_path}")
+
+    cfg = tomllib.loads(toml_path.read_text(encoding="utf-8"))
+    addon_urls = cfg.get("addons")
+    if not isinstance(addon_urls, list) or not all(isinstance(x, str) for x in addon_urls):
+        raise SystemExit('ERROR: TOML must contain: addons = ["https://..."]')
+
+    policy_path = pick_policy_path()
+    existing = load_json(policy_path)
+
+    patch = {"policies": {"ExtensionSettings": build_extension_settings(addon_urls)}}
+    merged = deep_merge(existing, patch)
+    save_json(policy_path, merged)
+
+    print(f"Wrote/updated: {policy_path}")
+    print("Restart Firefox, then verify in: about:policies")
+
+if __name__ == "__main__":
+    firefox_install_add_ons()
