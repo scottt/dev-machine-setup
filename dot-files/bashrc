@@ -96,7 +96,7 @@ pathvar-prepend PATH $HOME/.local/bin
 # Software Environments
 
 # Stop bash printing "No such file or directory" when glob pattern matches nothing
-environments_load() {
+environments-load() {
 	local old_nullglob=$(shopt -p nullglob)
 	shopt -s nullglob
 	for i in $HOME/environments/*.env; do
@@ -105,4 +105,4 @@ environments_load() {
 	$old_nullglob # restore nulglob state
 }
 
-environments_load
+environments-load
