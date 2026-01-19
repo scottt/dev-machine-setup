@@ -13,7 +13,7 @@ conda-env-reusable:
 				Darwin) CONDA_OS=osx ;; \
 				*) printf 'OS not supported: "%s"\n' $(shell uname) >&2; exit 1 ;; \
 			esac; \
-			case $(shell uname -p) in \
+			case $(shell uname -m) in \
 				i386|x86_64) CONDA_ARCH=64 ;; \
 				arm) CONDA_ARCH=arm64 ;; \
 				*) printf 'CPU Architecture not supported: "%s"\n' $(shell uname -p) >&2; exit 1 ;; \
