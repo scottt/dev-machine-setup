@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import shutil
+import glob
+import subprocess
+from pathlib import Path
+
+def make_dirs(p):
+    os.makedirs(p, exist_ok=True)
+
+def copy_file(p, dest_p):
+    try:
+        shutil.copy2(p, dest_p, follow_symlinks=False)
+    except shutil.SameFileError:
+        pass
+
+def copy_star(glob_pat, dest_p):
+    for p in glob.glob(glob_pat):
+        copy_file(p, dest_p)
+
+def program_name():
+    return os.path.basename(sys.argv[0])
+
+def is_unix():
+    # os.name == 'nt' for Windows
+    return os.name == 'posix'
+
+def is_macos():
+    return sys.platform == 'darwin'
+
+def run_command(args):
+    return subprocess.run(args, check=True)
+
+def main(args):
+    rules_src_dir = Path('.')
+    rules_dst_dir = Path('/etc/polkit-1/rules.d')
+ 
+    for i in glob.glob(str(rules_src_dir / '*.rules')):
+        copy_file(i, rules_dst_dir)
+    run_command(['restorecon', '-vR', str(rules_dst_dir)])
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
