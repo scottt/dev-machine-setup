@@ -40,6 +40,7 @@ def main(args):
     for i in glob.glob(str(rules_src_dir / '*.rules')):
         copy_file(i, rules_dst_dir)
     run_command(['restorecon', '-vR', str(rules_dst_dir)])
+    run_command(['sudo', 'systemctl', 'restart', 'polkit.service'])
 
 if __name__ == '__main__':
     main(sys.argv[1:])
