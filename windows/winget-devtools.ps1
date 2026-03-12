@@ -5,8 +5,16 @@ $packages = @(
     "Anthropic.ClaudeCode"
 )
 
-# Loop through each package and install
+$storeApps = @(
+    "Codex"
+)
+
 foreach ($pkg in $packages) {
     Write-Host "Installing $pkg..."
     winget install --id=$pkg --silent --accept-package-agreements --accept-source-agreements
+}
+
+foreach ($i in $storeApps) {
+    Write-Host "Installing $pkg from msstore..."
+    winget install $i --silent --accept-package-agreements --accept-source-agreements --source msstore
 }
