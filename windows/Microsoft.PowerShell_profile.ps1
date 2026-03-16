@@ -29,17 +29,18 @@ $env:PATH += ";$HOME\bin"
 # $env:PATH += ";D:\pkg-config-lite-0.28-1\bin"
 
 # cwRsync
-$env:PATH += ";$HOME\cwrsync_6.4.2_x64_free\bin"
+# $env:PATH += ";$HOME\cwrsync_6.4.2_x64_free\bin"
 
 # imhex: installed by winget but not added to PATH
 $env:PATH += ";C:\Program Files\ImHex"
 
 # TheRock
-#$env:PATH += ";D:\therock-output-gfx1151\build\dist\rocm\bin"
-#$env:HIP_CLANG_PATH = "D:\therock-output-gfx1151\build\dist\rocm\lib\llvm\bin"
-#$env:PATH += ";D:\therock-jammm-output-gfx1151\build\dist\rocm\bin"
-#$env:HIP_CLANG_PATH = "D:\therock-jammm-output-gfx1151\build\dist\rocm\lib\llvm\bin"
+# $env:PATH += ";D:\o\r-st-gfx1151\build\dist\rocm\bin"
+# $env:HIP_CLANG_PATH = "D:/o/r-st-gfx1151/build/dist/rocm/lib/llvm/bin"
 
 # CMake 3.30 and Ninja 1.12.1 from VisualStudio 2022 instead of Strawberry Perl
-$env:PATH = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;$env:PATH"
-$env:PATH = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja;$env:PATH"
+# $env:PATH = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;$env:PATH"
+# $env:PATH = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja;$env:PATH"
+
+# VIM from Git Bash
+Set-Alias vim "C:\Program Files\Git\usr\bin\vim.exe"
