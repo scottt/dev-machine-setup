@@ -1,0 +1,8 @@
+#!/bin/bash
+# https://github.com/openai/codex-plugin-cc
+
+set -o nounset
+set -o errexit
+
+claude plugin marketplace add openai/codex-plugin-cc
+claude plugin install codex@openai-codex
