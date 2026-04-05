@@ -1,0 +1,27 @@
+brew "vim"
+brew "fzf"
+brew "btop"
+brew "htop"
+brew "nethogs"
+brew "strace"
+brew "git"
+brew "git-gui"
+brew "git-lfs"
+brew "ipython"
+
+# Python toolchain and package management
+brew "uv"
+
+# Rust toolchain and package management
+brew "rustup"
+
+# From https://github.com/ublue-os/bazzite-dx/blob/main/build_files/20-install-apps.sh
+brew "bpftop"
+brew "sysprof"
+# ncdu: disk usage analysis
+brew "ncdu"
+
+# Not packaged in Homebrew for this Linux setup:
+# - iotop, ltrace, bcc, tiptop
+# - gitk is not shipped as a standalone Homebrew formula here
+# Install those from the base image or distro package manager if needed.
