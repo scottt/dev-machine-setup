@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import argparse
+import pathlib
+import subprocess
+import sys
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="flatpaks-install",
+        description="Install Flatpak apps listed in a file.",
+    )
+    parser.add_argument("filename", help="File containing one Flatpak app ID per line.")
+    return parser.parse_args()
+
+
+def load_apps(filename: str) -> list[str]:
+    path = pathlib.Path(filename)
+    apps: list[str] = []
+
+    with path.open(encoding="utf-8") as handle:
+        for raw_line in handle:
+            line = raw_line.split("#", 1)[0].strip()
+            if line:
+                apps.append(line)
+
+    return apps
+
+
+def main() -> int:
+    args = parse_args()
+
+    try:
+        apps = load_apps(args.filename)
+    except OSError as exc:
+        print(f"flatpaks-install: {exc}", file=sys.stderr)
+        return 1
+
+    if not apps:
+        print(
+            f"flatpaks-install: no Flatpak app IDs found in {args.filename}",
+            file=sys.stderr,
+        )
+        return 1
+
+    result = subprocess.run(["flatpak", "install", "-y", "flathub", *apps], check=False)
+    return result.returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
