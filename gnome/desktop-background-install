@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+import os
+import shutil
+import subprocess
+from pathlib import Path
+
+def main():
+    home = os.environ["HOME"]
+    bg_dir = Path(home) / ".local" / "share" / "backgrounds"
+    bg_dir.mkdir(parents=True, exist_ok=True)
+
+    src = Path(__file__).resolve().parent / "data" / "bg.png"
+    dest = bg_dir / "bg.png"
+    shutil.copy2(src, dest)
+
+    picture_uri = f"file://{dest}"
+    subprocess.run(
+        ["gsettings", "set", "org.gnome.desktop.background", "picture-uri", picture_uri],
+        check=True,
+    )
+    subprocess.run(
+        ["gsettings", "set", "org.gnome.desktop.background", "picture-uri-dark", picture_uri],
+        check=True,
+    )
+    subprocess.run(
+        ["gsettings", "set", "org.gnome.desktop.background", "picture-options", "zoom"],
+        check=True,
+    )
+
+if __name__ == "__main__":
+    main()

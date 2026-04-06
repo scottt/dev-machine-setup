@@ -4,6 +4,7 @@ import pwd
 import argparse
 
 import ast
+import shlex
 import subprocess
 import json
 
@@ -76,10 +77,17 @@ def gsettings_patch_parse(lines):
             (schema, key, value) = gsettings_line_parse(l[1:])
             if (schema != schema0) or (key != key0):
                 raise ValueError(filename, lineno, 'Expected %r %r, got %r %r' % (schema0, key0, schema, key))
-            if is_scaler(value):
+            #print('value: %r' % (value,), file=sys.stderr)
+            if is_scaler(value) or isinstance(value, dict):
                 out.append(('set', schema, key, value))
             else:
-                (set0, set1) = (set(value0), set(value))
+                try:
+                    value_set = set(value)
+                except TypeError: # value is or contains non-hashable like dict
+                    out.append(('set', schema, key, value))
+                    continue
+
+                (set0, set1) = (set(value0), value_set)
                 if (set0 == set1):
                     if value0 == value:
                         continue
@@ -172,6 +180,12 @@ def gsettings_patch_apply_current_user(lines):
             assert(0)
 
 def gsettings_patch_apply(filename, users):
+    with open(filename) as f:
+        lines = f.readlines()
+    gsettings_patch_apply_current_user(lines)
+
+def gsettings_patch_apply_orig(filename, users):
+    assert(0)
     for user in users:
         p = pwd.getpwnam(user)
         (uid, gid) = (p.pw_uid, p.pw_gid)
@@ -181,6 +195,23 @@ def gsettings_patch_apply(filename, users):
                 preexec_fn=priv_set_fn_get(uid, gid),
                 stdin=open(filename))
 
+def gsettings_apply(lines):
+    """Apply gsettings from a file. Each line: schema key value"""
+    for l in lines:
+        l = l.strip()
+        if not l or l.startswith("#"):
+            continue
+        parts = shlex.split(l)
+        #print('l: %r, parts: %r' % (l, parts), file=sys.stderr)
+        schema, key, value = parts[0], parts[1], parts[2]
+        cmd = ["gsettings", "set", schema, key, value]
+        print(shlex.join(cmd))
+        subprocess.run(cmd, check=True)
+
+def gsettings_file_apply(filename):
+    with open(filename) as f:
+        gsettings_apply(f)
+   
 def main():
     parser = argparse.ArgumentParser(description='apply gsettings patch')
     parser.add_argument('patches', metavar='GSETTINGS-PATCH', nargs='+')

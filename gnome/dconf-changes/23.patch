@@ -1,0 +1,97 @@
+--- 2-24hr.dconf	2025-09-30 02:36:11.940510171 +0800
++++ 3-bg.dconf	2025-09-30 03:46:04.051353076 +0800
+@@ -4,8 +4,8 @@
+ window-size=(uint32 169, uint32 78)
+ 
+ [org/gnome/control-center]
+-last-panel='system'
+-window-state=(980, 1005, false)
++last-panel='background'
++window-state=(980, 1244, false)
+ 
+ [org/gnome/desktop/app-folders]
+ folder-children=['System', 'Utilities', 'YaST', 'Pardus']
+@@ -30,6 +30,14 @@
+ name='suse-yast.directory'
+ translate=true
+ 
++[org/gnome/desktop/background]
++color-shading-type='solid'
++picture-options='zoom'
++picture-uri='file:///var/home/scottt/.local/share/backgrounds/2025-09-30-03-45-47-bg.png'
++picture-uri-dark='file:///var/home/scottt/.local/share/backgrounds/2025-09-30-03-45-47-bg.png'
++primary-color='#000000000000'
++secondary-color='#000000000000'
++
+ [org/gnome/desktop/break-reminders/eyesight]
+ play-sound=true
+ 
+@@ -44,6 +52,7 @@
+ [org/gnome/desktop/interface]
+ clock-format='24h'
+ clock-show-date=true
++color-scheme='prefer-dark'
+ enable-animations=false
+ gtk-key-theme='Emacs'
+ 
+@@ -71,6 +80,13 @@
+ [org/gnome/desktop/peripherals/touchpad]
+ two-finger-scrolling-enabled=true
+ 
++[org/gnome/desktop/screensaver]
++color-shading-type='solid'
++picture-options='zoom'
++picture-uri='file:///var/home/scottt/.local/share/backgrounds/2025-09-30-03-45-47-bg.png'
++primary-color='#000000000000'
++secondary-color='#000000000000'
++
+ [org/gnome/desktop/search-providers]
+ sort-order=['org.gnome.Settings.desktop', 'org.gnome.Contacts.desktop', 'org.gnome.Nautilus.desktop']
+ 
+@@ -124,11 +140,19 @@
+ 
+ [org/gnome/nautilus/window-state]
+ initial-size=(890, 550)
++initial-size-file-chooser=(890, 550)
++
++[org/gnome/nm-applet/eap/0631e7d7-108a-32ee-bf7c-1378f4d52c6b]
++ignore-ca-cert=false
++ignore-phase2-ca-cert=false
+ 
+ [org/gnome/nm-applet/eap/8bb232b1-c9d9-3bac-9331-4428d739dd7e]
+ ignore-ca-cert=false
+ ignore-phase2-ca-cert=false
+ 
++[org/gnome/portal/filechooser/org.gnome.Settings]
++last-folder-path='/var/home/scottt/work/dev-machine-setup/fedora/data'
++
+ [org/gnome/settings-daemon/plugins/color]
+ night-light-schedule-automatic=false
+ 
+@@ -164,10 +188,18 @@
+ name='Mission Center'
+ 
+ [org/gnome/shell]
+-enabled-extensions=['launch-new-instance@gnome-shell-extensions.gcampax.github.com', 'window-list@gnome-shell-extensions.gcampax.github.com', 'alternate-tab@gnome-shell-extensions.gcampax.github.com', 'places-menu@gnome-shell-extensions.gcampax.github.com']
++enabled-extensions=['launch-new-instance@gnome-shell-extensions.gcampax.github.com', 'window-list@gnome-shell-extensions.gcampax.github.com', 'alternate-tab@gnome-shell-extensions.gcampax.github.com', 'places-menu@gnome-shell-extensions.gcampax.github.com', 'appindicatorsupport@rgcjonas.gmail.com']
+ favorite-apps=['org.mozilla.firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.TextEditor.desktop']
+ welcome-dialog-last-shown-version='49.rc'
+ 
++[org/gnome/shell/extensions/appindicator]
++icon-brightness=0.0
++icon-contrast=0.0
++icon-opacity=240
++icon-saturation=0.0
++icon-size=0
++legacy-tray-enabled=true
++
+ [org/gnome/software]
+ check-timestamp=int64 1759146699
+ first-run=false
+@@ -181,3 +213,6 @@
+ 
+ [org/gtk/settings/file-chooser]
+ clock-format='24h'
++
++[system/proxy]
++mode='none'

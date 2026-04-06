@@ -1,0 +1,13 @@
+#!/bin/bash
+
+l='darkmode.gsettings
+clock-24h.gsettings
+gnome-shell-world-clocks.gsettings
+gnome-tweaks.gsettings-patch
+gnome-keyboard-shortcuts.gsettings-patch
+gnome-keyboard-shortcuts.dconf-custom-keybinding'
+
+for i in $l; do
+	./devsetup-apply "$i"
+done
+./desktop-background-install

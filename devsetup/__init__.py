@@ -1,6 +1,6 @@
 __all__ = ['package_list_translate', 'package_list_file_load',
            'package_install', 'package_is_installed', 'fedora_version_get', 'repo_rpm_urls_load',
-           'gsettings_patch_apply', 'dbus_user_session_run', 'gnome_custom_keybindings_apply'
+           'gsettings_patch_apply', 'gsettings_file_apply', 'dbus_user_session_run', 'gnome_custom_keybindings_apply'
 ]
 
 import sys
@@ -17,7 +17,7 @@ try:
 except ImportError:
     from yaml import Loader as YamlLoader
 
-from .gsettings import gsettings_patch_apply
+from .gsettings import gsettings_patch_apply, gsettings_file_apply
 from .dbus import dbus_user_session_run
 from .gnome_custom_keybindings import gnome_custom_keybindings_apply
 

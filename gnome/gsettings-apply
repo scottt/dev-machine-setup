@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import shlex
+import subprocess
+import sys
+import devsetup.gsettings
+
+if len(sys.argv) != 2:
+    print(f"Usage: {sys.argv[0]} <file>", file=sys.stderr)
+    sys.exit(1)
+
+with open(sys.argv[1]) as f:
+    devsetup.gsettings.gsettings_apply(f)

@@ -1,0 +1,149 @@
+[org/gnome/Ptyxis]
+default-profile-uuid='b9d1dc30e1f2f7bf5a3fba9669d411e0'
+profile-uuids=['b9d1dc30e1f2f7bf5a3fba9669d411e0']
+window-size=(uint32 80, uint32 24)
+
+[org/gnome/control-center]
+last-panel='system'
+window-state=(980, 640, false)
+
+[org/gnome/desktop/app-folders]
+folder-children=['System', 'Utilities', 'YaST', 'Pardus']
+
+[org/gnome/desktop/app-folders/folders/Pardus]
+categories=['X-Pardus-Apps']
+name='X-Pardus-Apps.directory'
+translate=true
+
+[org/gnome/desktop/app-folders/folders/System]
+apps=['org.gnome.baobab.desktop', 'org.gnome.DiskUtility.desktop', 'org.gnome.Logs.desktop', 'org.freedesktop.MalcontentControl.desktop', 'org.gnome.Sysprof.desktop', 'org.gnome.SystemMonitor.desktop']
+name='X-GNOME-Shell-System.directory'
+translate=true
+
+[org/gnome/desktop/app-folders/folders/Utilities]
+apps=['org.gnome.Connections.desktop', 'org.gnome.Papers.desktop', 'org.gnome.font-viewer.desktop', 'org.gnome.Loupe.desktop']
+name='X-GNOME-Shell-Utilities.directory'
+translate=true
+
+[org/gnome/desktop/app-folders/folders/YaST]
+categories=['X-SuSE-YaST']
+name='suse-yast.directory'
+translate=true
+
+[org/gnome/desktop/background]
+picture-options='zoom'
+picture-uri='file:///var/home/scotttagent/.local/share/backgrounds/bg.png'
+picture-uri-dark='file:///var/home/scotttagent/.local/share/backgrounds/bg.png'
+
+[org/gnome/desktop/input-sources]
+sources=[('xkb', 'us')]
+
+[org/gnome/desktop/interface]
+clock-format='24h'
+clock-show-date=true
+color-scheme='prefer-dark'
+enable-animations=false
+gtk-key-theme='Emacs'
+toolkit-accessibility=false
+
+[org/gnome/desktop/notifications]
+application-children=['org-gnome-software', 'gnome-power-panel', 'gnome-about-panel']
+
+[org/gnome/desktop/notifications/application/gnome-about-panel]
+application-id='gnome-about-panel.desktop'
+
+[org/gnome/desktop/notifications/application/gnome-power-panel]
+application-id='gnome-power-panel.desktop'
+
+[org/gnome/desktop/notifications/application/org-gnome-software]
+application-id='org.gnome.Software.desktop'
+
+[org/gnome/desktop/sound]
+allow-volume-above-100-percent=true
+
+[org/gnome/desktop/wm/keybindings]
+move-to-workspace-1=['<Shift><Control><Alt>h']
+move-to-workspace-2=['<Primary><Shift><Alt>j']
+move-to-workspace-3=['<Primary><Shift><Alt>k']
+move-to-workspace-4=['<Primary><Shift><Alt>l']
+switch-to-workspace-1=['<Shift><Alt>h']
+switch-to-workspace-2=['<Shift><Alt>j']
+switch-to-workspace-3=['<Shift><Alt>k']
+switch-to-workspace-4=['<Shift><Alt>l']
+
+[org/gnome/desktop/wm/preferences]
+button-layout='appmenu:minimize,maximize,close'
+focus-mode='mouse'
+mouse-button-modifier='<Alt>'
+
+[org/gnome/evolution-data-server]
+migrated=true
+
+[org/gnome/login-screen]
+enable-fingerprint-authentication=true
+enable-smartcard-authentication=false
+
+[org/gnome/mutter]
+dynamic-workspaces=false
+workspaces-only-on-primary=false
+
+[org/gnome/nautilus/preferences]
+default-folder-viewer='list-view'
+migrated-gtk-settings=true
+
+[org/gnome/nautilus/window-state]
+initial-size=(890, 1011)
+
+[org/gnome/settings-daemon/plugins/color]
+night-light-schedule-automatic=false
+
+[org/gnome/settings-daemon/plugins/housekeeping]
+donation-reminder-last-shown=int64 1775511692736115
+
+[org/gnome/settings-daemon/plugins/media-keys]
+custom-keybindings=['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/']
+
+[org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0]
+binding='<Control><Alt>t'
+command='wezterm-gui start --always-new-process'
+name='Terminal'
+
+[org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1]
+binding='<Alt>F3'
+command='/usr/bin/ptyxis --new-window'
+name='Ptyxis Terminal'
+
+[org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2]
+binding='<Super>F2'
+command='flatpak run org.gnome.TextEditor'
+name='Text Editor'
+
+[org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3]
+binding='<Super>e'
+command='nautilus'
+name='File Manager'
+
+[org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4]
+binding='<Control><Shift>Escape'
+command='flatpak run io.missioncenter.MissionCenter'
+name='Mission Center'
+
+[org/gnome/shell]
+app-picker-layout=[{'org.gnome.Contacts.desktop': <{'position': <0>}>, 'org.gnome.Weather.desktop': <{'position': <1>}>, 'org.gnome.clocks.desktop': <{'position': <2>}>, 'io.github.kolunmi.Bazaar.desktop': <{'position': <3>}>, 'org.gnome.Maps.desktop': <{'position': <4>}>, 'io.github.celluloid_player.Celluloid.desktop': <{'position': <5>}>, 'com.discordapp.Discord.desktop': <{'position': <6>}>, 'org.gnome.Settings.desktop': <{'position': <7>}>, 'com.mattjakeman.ExtensionManager.desktop': <{'position': <8>}>, 'org.gnome.Snapshot.desktop': <{'position': <9>}>, 'org.gnome.Characters.desktop': <{'position': <10>}>, 'org.fedoraproject.MediaWriter.desktop': <{'position': <11>}>, 'Utilities': <{'position': <12>}>, 'System': <{'position': <13>}>, 'com.github.tchx84.Flatseal.desktop': <{'position': <14>}>, 'org.gnome.Tour.desktop': <{'position': <15>}>, 'org.gnome.Yelp.desktop': <{'position': <16>}>, 'io.freetubeapp.FreeTube.desktop': <{'position': <17>}>, 'com.geeks3d.furmark.desktop': <{'position': <18>}>, 'git-gui.desktop': <{'position': <19>}>, 'org.gimp.GIMP.desktop': <{'position': <20>}>, 'com.google.Chrome.desktop': <{'position': <21>}>, 'gvim.desktop': <{'position': <22>}>, 'htop.desktop': <{'position': <23>}>}, {'org.kde.kdiff3.desktop': <{'position': <0>}>, 'com.bishwasaha.Koncentro.desktop': <{'position': <1>}>, 'org.kde.krdc.desktop': <{'position': <2>}>, 'org.kde.kwalletmanager5.desktop': <{'position': <3>}>, 'kde4-kwalletmanager.desktop': <{'position': <4>}>, 'org.localsend.localsend_app.desktop': <{'position': <5>}>, 'no.mifi.losslesscut.desktop': <{'position': <6>}>, 'io.missioncenter.MissionCenter.desktop': <{'position': <7>}>, 'com.obsproject.Studio.desktop': <{'position': <8>}>, 'org.freedesktop.Piper.desktop': <{'position': <9>}>, 'remote-viewer.desktop': <{'position': <10>}>, 'org.signal.Signal.desktop': <{'position': <11>}>, 'com.valvesoftware.Steam.desktop': <{'position': <12>}>, 'org.gnome.Ptyxis.desktop': <{'position': <13>}>, 'com.ozmartians.VidCutter.desktop': <{'position': <14>}>, 'org.gnome.gitlab.YaLTeR.VideoTrimmer.desktop': <{'position': <15>}>, 'virt-manager.desktop': <{'position': <16>}>, 'code.desktop': <{'position': <17>}>}]
+enabled-extensions=['alternate-tab@gnome-shell-extensions.gcampax.github.com', 'places-menu@gnome-shell-extensions.gcampax.github.com', 'launch-new-instance@gnome-shell-extensions.gcampax.github.com', 'window-list@gnome-shell-extensions.gcampax.github.com']
+welcome-dialog-last-shown-version='49.5'
+
+[org/gnome/shell/world-clocks]
+locations=[<(uint32 2, <('San Francisco', 'KOAK', true, [(0.65832848982162007, -2.133408063190589)], [(0.659296885757089, -2.1366218601153339)])>)>, <(uint32 2, <('New York', 'KNYC', true, [(0.71180344078725644, -1.2909618758762367)], [(0.71059804659265924, -1.2916478949920254)])>)>, <(uint32 2, <('London', 'EGWU', true, [(0.89971722940307675, -0.007272211034407213)], [(0.89884456477707964, -0.0020362232784242244)])>)>]
+
+[org/gnome/software]
+first-run=false
+install-timestamp=int64 1775088000
+
+[org/gtk/gtk4/settings/file-chooser]
+clock-format='24h'
+show-hidden=false
+sort-directories-first=false
+
+[org/gtk/settings/file-chooser]
+clock-format='24h'
