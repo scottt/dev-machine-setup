@@ -3,6 +3,7 @@
 l='darkmode.gsettings
 clock-24h.gsettings
 gnome-shell-world-clocks.gsettings
+gnome-software-disable-updates.gsettings
 gnome-tweaks.gsettings-patch
 gnome-keyboard-shortcuts.gsettings-patch
 gnome-keyboard-shortcuts.dconf-custom-keybinding'
