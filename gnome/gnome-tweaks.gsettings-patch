@@ -23,14 +23,8 @@
 -org.gnome.desktop.wm.preferences button-layout 'appmenu:close'
 +org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
 # Files (nautilus)
--org.gnome.nautilus.window-state start-with-sidebar true
-+org.gnome.nautilus.window-state start-with-sidebar false
 -org.gnome.nautilus.preferences default-folder-viewer 'icon-view'
 +org.gnome.nautilus.preferences default-folder-viewer 'list-view'
-# Terminal (gnome-terminal)
--org.gnome.Terminal.Legacy.Settings default-show-menubar true
-+org.gnome.Terminal.Legacy.Settings default-show-menubar false
-
 
 # Settings -> Multitasking
 -org.gnome.mutter dynamic-workspaces true
