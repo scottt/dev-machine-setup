@@ -6,6 +6,8 @@ gnome-shell-world-clocks.gsettings
 gnome-software-disable-updates.gsettings
 gnome-tweaks.gsettings-patch
 gnome-keyboard-shortcuts.gsettings-patch
+gnome-keyboard-multi-language.gsettings-patch
+gnome-keyboard-multi-language-shortcuts.gsettings
 gnome-keyboard-shortcuts.dconf-custom-keybinding'
 
 for i in $l; do

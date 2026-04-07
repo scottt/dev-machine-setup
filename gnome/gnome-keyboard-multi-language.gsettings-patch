@@ -1,0 +1,9 @@
+# Keyboard -> Input Sources: add 'chewing' for Taiwanese Mandarin
+-org.gnome.desktop.input-sources sources [('xkb', 'us')]
++org.gnome.desktop.input-sources sources [('xkb', 'us'), ('ibus', 'chewing')]
+
+# 'chewing' input method preferences
+-org.freedesktop.IBus.Chewing kb-type 'default'
++org.freedesktop.IBus.Chewing kb-type 'hsu'
+-org.freedesktop.IBus.Chewing sel-keys '1234567890'
++org.freedesktop.IBus.Chewing sel-keys 'asdfghjkl;'
