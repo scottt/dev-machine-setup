@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     vscode_binary_name = "code.cmd" if platform.system() == "Windows" else "code"
     parser.add_argument(
         "--code-bin",
-        default="code.cmd",
+        default=vscode_binary_name,
         help="VS Code CLI executable to use (default: code).",
     )
     parser.add_argument(
