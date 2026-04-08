@@ -32,3 +32,8 @@
 # Settings -> Multitasking
 -org.gnome.mutter workspaces-only-on-primary true
 +org.gnome.mutter workspaces-only-on-primary false
+
+# Disable "Support GNOME" notification
+# https://www.reddit.com/r/Fedora/comments/1ojky4n/42_43_went_smooth_couple_of_shell_extensions_were/
+-org.gnome.settings-daemon.plugins.housekeeping donation-reminder-enabled true
++org.gnome.settings-daemon.plugins.housekeeping donation-reminder-enabled false
