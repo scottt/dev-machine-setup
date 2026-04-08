@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+flatpaks_file="$script_dir/apps.flatpaks"
+
+flatpak remote-add --if-not-exists \
+  flathub \
+  https://flathub.org/repo/flathub.flatpakrepo
+
+exec "$script_dir/flatpaks-install" "$flatpaks_file"
