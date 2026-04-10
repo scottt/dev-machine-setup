@@ -29,18 +29,33 @@ def is_unix():
 def is_macos():
     return sys.platform == 'darwin'
 
+def file_contains_str(file_path, substr):
+    with open(file_path) as f:
+        file_content = f.read()
+        return substr in file_content
+
+def install_environments_dir():
+    system_name = 'mac' if is_macos() else 'fedora'
+    copy_star(os.path.join('..', system_name, 'environments', '*'),
+              os.path.expanduser('~/environments'))
+    os_variant = None
+    if system_name == 'fedora':
+        if file_contains_str('/etc/os-release', 'VARIANT_ID=silverblue\n'):
+            os_variant = 'silverblue'
+    if os_variant is not None:
+        copy_star(os.path.join('..', os_variant, 'environments', '*'),
+                  os.path.expanduser('~/environments'))
+
 def main(args):
     dot_files_dir = '.'
 
     if is_unix():
-        system_name = 'mac' if is_macos() else 'fedora'
         make_dirs(os.path.expanduser('~/environments'))
         copy_file(os.path.join(dot_files_dir, 'inputrc'), os.path.expanduser('~/.inputrc'))
         copy_file(os.path.join(dot_files_dir, 'bashrc'), os.path.expanduser('~/.bashrc'))
         copy_file(os.path.join(dot_files_dir, 'gdbinit'), os.path.expanduser('~/.gdbinit'))
         copy_file(os.path.join(dot_files_dir, 'vimrc'), os.path.expanduser('~/.vimrc'))
-        copy_star(os.path.join('..', system_name, 'environments', '*'),
-                os.path.expanduser('~/environments'))
+        install_environments_dir()
 
     wezterm_config_dir = Path(os.path.expanduser('~/.config/wezterm'))
     wezterm_config_dir.mkdir(parents=True, exist_ok=True)
