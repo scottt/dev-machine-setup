@@ -14,5 +14,5 @@ $packages = Get-Content -Path $PackageFiles |
 # Loop through each package and install
 foreach ($pkg in $packages) {
     Write-Host "Installing $pkg..."
-    winget install --id=$pkg --silent --accept-package-agreements --accept-source-agreements
+    winget install --id=$pkg --source winget --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
 }
