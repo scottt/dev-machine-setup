@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Run as root. Sets hardware clock (RTC) to UTC+0
+timedatectl set-local-rtc 0
+hwclock --systohc --utc
