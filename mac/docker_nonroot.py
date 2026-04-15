@@ -31,7 +31,7 @@ def docker_nonroot_setup(username):
     # https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/docker.rb
     # https://docs.docker.com/desktop/mac/apple-silicon/
     subprocess.check_call(['softwareupdate', '--agree-to-license', '--install-rosetta'])
-    devsetup.brew_bundle_install('docker.brew-bundle')
+    devsetup.brew_bundle_install('docker.brewfile')
 
 def setup(uid=None, username=None):
     # refactor as reusable code in devsetup

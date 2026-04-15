@@ -26,9 +26,9 @@ def main():
     target_arch = os.uname().machine
 
     if 0:
-        devsetup.brew_bundle_install('dev.brew-bundle')
-        devsetup.brew_bundle_install('ui.brew-bundle')
-        devsetup.brew_bundle_install('com.brew-bundle')
+        devsetup.brew_bundle_install('dev.brewfile')
+        devsetup.brew_bundle_install('ui.brewfile')
+        devsetup.brew_bundle_install('com.brewfile')
         docker_nonroot.setup(uids[0])
     # add to /etc/shells, chsh root
     subprocess.run(['sudo', './chsh-bash'], check=True)

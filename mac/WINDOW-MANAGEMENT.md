@@ -1,6 +1,6 @@
 # Mac Window Management
 
-See `ui.brew-bundle`.
+See `ui.brewfile`.
 Requires: skhd (global hotkeys) and yabai (tiling window manager)
 
 New Mac Hardware & OS Support: https://github.com/koekeishiya/yabai/issues/1035

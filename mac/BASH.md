@@ -7,7 +7,7 @@ chsh -s $(which bash) $(whoami)
 
 # Brew Packages and Setup
 
-`dev.brew-bundle`:
+`dev.brewfile`:
 ```
 brew 'bash'
 brew 'bash-completion@2'
