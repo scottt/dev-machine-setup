@@ -1,0 +1,100 @@
+#!/usr/bin/env python
+
+import json
+import os
+import subprocess
+import shutil
+import sys
+
+
+def copy_file(src, dst):
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copy2(src, dst)
+
+
+def install_launch_agent(src, label):
+    h = os.path.expanduser('~')
+    dst = os.path.join(h, 'Library', 'LaunchAgents', os.path.basename(src))
+    copy_file(src, dst)
+
+    domain = f'gui/{os.getuid()}'
+    subprocess.run(['launchctl', 'bootout', domain, dst], check=False)
+    result = subprocess.run(['launchctl', 'bootstrap', domain, dst], check=False)
+    if result.returncode != 0:
+        print(
+            f'warning: failed to load launch agent {label}; it will load on next login',
+            file=sys.stderr,
+        )
+
+
+def selected_karabiner_profile(config):
+    profiles = config.setdefault('profiles', [])
+    if not profiles:
+        profile = {
+            'name': 'Default profile',
+            'selected': True,
+            'complex_modifications': {'rules': []},
+        }
+        profiles.append(profile)
+        return profile
+
+    for profile in profiles:
+        if profile.get('selected'):
+            return profile
+
+    return profiles[0]
+
+
+def karabiner_rule_merge(src, dst):
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+    with open(src) as f:
+        src_rules = json.load(f).get('rules', [])
+
+    if os.path.exists(dst):
+        with open(dst) as f:
+            karabiner_config = json.load(f)
+    else:
+        karabiner_config = {'global': {}, 'profiles': []}
+
+    profile = selected_karabiner_profile(karabiner_config)
+    complex_modifications = profile.setdefault('complex_modifications', {})
+    existing_rules = complex_modifications.setdefault('rules', [])
+
+    source_descriptions = {rule.get('description') for rule in src_rules}
+    existing_rules = [
+        rule for rule in existing_rules
+        if rule.get('description') not in source_descriptions
+    ]
+    existing_rules.extend(src_rules)
+    complex_modifications['rules'] = existing_rules
+
+    with open(dst, 'w') as f:
+        json.dump(karabiner_config, f, indent=2)
+        f.write('\n')
+
+
+def copy():
+    h = os.path.expanduser('~')
+    y = os.path.join(h, '.config', 'yabai')
+    s = os.path.join(h, '.config', 'skhd')
+    k = os.path.join(h, '.config', 'karabiner', 'assets', 'complex_modifications')
+    karabiner_config = os.path.join(h, '.config', 'karabiner', 'karabiner.json')
+    workspace_hotkeys = os.path.join('config', 'karabiner-workspace-hotkeys.json')
+    copy_file(os.path.join('config', 'yabairc'), os.path.join(y, 'yabairc'))
+    copy_file(os.path.join('config', 'skhdrc'), os.path.join(s, 'skhdrc'))
+    copy_file(
+        workspace_hotkeys,
+        os.path.join(k, 'workspace-hotkeys.json'),
+    )
+    karabiner_rule_merge(workspace_hotkeys, karabiner_config)
+    install_launch_agent(
+        os.path.join('config', 'org.n8henrie.karabiner-elements.plist'),
+        'org.n8henrie.karabiner-elements',
+    )
+
+def main(args):
+    copy()
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

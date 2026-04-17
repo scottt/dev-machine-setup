@@ -1,7 +1,7 @@
 # Mac Window Management
 
-See `ui.brewfile`.
-Requires: skhd (global hotkeys) and yabai (tiling window manager)
+See `wm.brewfile`.
+Requires: skhd (global hotkeys), yabai (tiling window manager), karabiner-elements (hot key remapper)
 
 New Mac Hardware & OS Support: https://github.com/koekeishiya/yabai/issues/1035
 
@@ -20,3 +20,10 @@ https://github.com/koekeishiya/yabai/wiki/Configuration#configuration-file
 ### Yabai and Skhd
 * See `config/...`
 * Install into `$HOME/.config/{yabai,skhd}/{yabai,skhd}rc`
+
+## Workspace Movement with Hotkey
+
+macOS does not natively let you assign arbitrary keys like Cmd + Shift + H directly to a Space switch, but remapping to the built-in Ctrl + 2 shortcut works.
+
+Karabiner-elements is used to map `Cmd + Shift + h` to `Ctrl + 1` etc.
+This repo also installs a LaunchAgent so `Karabiner-Elements` opens automatically at login.
