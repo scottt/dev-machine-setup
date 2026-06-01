@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+#
+# Ensure the user's SSH config has a global "AddKeysToAgent yes" entry.
+#
+# With this enabled, OpenSSH asks ssh-agent to remember private keys after
+# they are used, so later SSH commands can reuse the agent instead of prompting
+# again. This is especially useful on macOS, where the Apple-provided SSH stack
+# and login session agent make this behavior convenient. GNOME desktops often
+# already wire SSH keys through gnome-keyring or a desktop-managed agent, so the
+# setting tends to be less important there.
+
+import argparse
+import os
+import stat
+import sys
+from pathlib import Path
+
+
+SETTING = "AddKeysToAgent"
+VALUE = "yes"
+SECTION_KEYWORDS = {"host", "match"}
+
+
+def split_comment(line):
+    escaped = False
+    in_single = False
+    in_double = False
+
+    for index, char in enumerate(line):
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\":
+            escaped = True
+            continue
+        if char == "'" and not in_double:
+            in_single = not in_single
+            continue
+        if char == '"' and not in_single:
+            in_double = not in_double
+            continue
+        if char == "#" and not in_single and not in_double:
+            return line[:index], line[index:]
+
+    return line, ""
+
+
+def parse_keyword(line):
+    content, _comment = split_comment(line)
+    stripped = content.strip()
+    if not stripped:
+        return None
+
+    if "=" in stripped:
+        keyword, _value = stripped.split("=", 1)
+        return keyword.strip().lower()
+
+    return stripped.split(None, 1)[0].lower()
+
+
+def first_host_or_match_index(lines):
+    for index, line in enumerate(lines):
+        if parse_keyword(line) in SECTION_KEYWORDS:
+            return index
+    return len(lines)
+
+
+def setting_is_yes(line):
+    content, _comment = split_comment(line)
+    stripped = content.strip()
+    if "=" in stripped:
+        keyword, value = stripped.split("=", 1)
+    else:
+        parts = stripped.split(None, 1)
+        if len(parts) != 2:
+            return False
+        keyword, value = parts
+
+    return keyword.lower() == SETTING.lower() and value.strip().lower() == VALUE
+
+
+def ensure_add_keys_to_agent(lines):
+    global_end = first_host_or_match_index(lines)
+
+    for index in range(global_end):
+        if parse_keyword(lines[index]) == SETTING.lower():
+            if setting_is_yes(lines[index]):
+                return lines, False
+            updated = list(lines)
+            newline = "\n" if lines[index].endswith("\n") else ""
+            updated[index] = f"{SETTING} {VALUE}{newline}"
+            return updated, True
+
+    updated = list(lines)
+    insert_line = f"{SETTING} {VALUE}\n"
+
+    if global_end == 0:
+        updated.insert(0, insert_line)
+    elif global_end == len(updated):
+        if updated and not updated[-1].endswith("\n"):
+            updated[-1] += "\n"
+        if updated and updated[-1].strip():
+            updated.append("\n")
+        updated.append(insert_line)
+    else:
+        if global_end > 0 and updated[global_end - 1].strip():
+            updated.insert(global_end, "\n")
+        updated.insert(global_end, insert_line)
+
+    return updated, True
+
+
+def restrict_permissions(path):
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if path.parent.name == ".ssh":
+        os.chmod(path.parent, 0o700)
+    if path.exists():
+        mode = stat.S_IMODE(path.stat().st_mode)
+        if mode & 0o077:
+            os.chmod(path, mode & 0o700)
+
+
+def configure(path, dry_run=False):
+    path = path.expanduser()
+
+    if path.exists():
+        lines = path.read_text().splitlines(keepends=True)
+    else:
+        lines = []
+
+    updated, changed = ensure_add_keys_to_agent(lines)
+    if changed and not dry_run:
+        restrict_permissions(path)
+        path.write_text("".join(updated))
+        os.chmod(path, 0o600)
+    elif not dry_run and path.exists():
+        restrict_permissions(path)
+
+    return changed
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(
+        description="Ensure AddKeysToAgent yes is set globally in the user's SSH config."
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("~/.ssh/config"),
+        help="SSH config path to update. Defaults to ~/.ssh/config.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Check whether an update would be made without writing changes.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv):
+    args = parse_args(argv)
+    changed = configure(args.config, dry_run=args.dry_run)
+    if changed:
+        action = "would update" if args.dry_run else "updated"
+        print(f"{action}: {args.config.expanduser()}")
+    else:
+        print(f"already set: {args.config.expanduser()}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))
