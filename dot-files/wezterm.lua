@@ -32,6 +32,10 @@ end
 config.enable_scroll_bar = true
 config.pane_focus_follows_mouse = true
 
+-- tmux-like Leader key
+  --       LEADER see https://wezterm.org/config/keys.html#leader-key
+config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 1000 }
+
 -- https://wezterm.org/config/keys.html#configuring-key-assignments
 config.keys = {
   -- mods: SUPER, CMD, WIN
@@ -39,6 +43,16 @@ config.keys = {
   --       SHIFT
   --       ALT, OPT, META
   --       LEADER see https://wezterm.org/config/keys.html#leader-key
+  { -- Send "CTRL-A" to the terminal when pressing CTRL-A, CTRL-A
+    key = 'a',
+    mods = 'LEADER|CTRL',
+    action = act.SendKey { key = 'a', mods = 'CTRL' },
+  },
+  {
+    key = ':',
+    mods = 'LEADER|SHIFT',
+    action = act.ActivateCommandPalette,
+  },
   {
     key = '1',
     mods = 'ALT',
