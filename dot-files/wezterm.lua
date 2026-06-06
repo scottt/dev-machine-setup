@@ -30,6 +30,7 @@ if wezterm.config_builder then
 end
 
 config.enable_scroll_bar = true
+config.pane_focus_follows_mouse = true
 
 -- https://wezterm.org/config/keys.html#configuring-key-assignments
 config.keys = {
