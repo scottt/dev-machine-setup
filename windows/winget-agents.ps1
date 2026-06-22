@@ -1,7 +1,6 @@
 # List of packages to install
 $packages = @(
-    # nvm-windows: Node Version Manager, for `npm i -g @openai/codex`
-    "CoreyButler.NVMforWindows",
+    "OpenAI.Codex",
     "Anthropic.ClaudeCode"
 )
 
