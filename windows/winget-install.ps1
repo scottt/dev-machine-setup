@@ -1,5 +1,6 @@
 # List of packages to install
 $packages = @(
+    "Git.Git",
     "Microsoft.PowerShell",
     "Microsoft.VisualStudioCode",
     "Mozilla.Firefox",
@@ -7,7 +8,7 @@ $packages = @(
     "Google.Chrome",
     "OpenVPNTechnologies.OpenVPN",
     "LocalSend.LocalSend",
-    "Git.Git"
+    "KDE.KDEConnect"
 )
 
 # Loop through each package and install
