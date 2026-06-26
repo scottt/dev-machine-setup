@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+#
+# Configure libvirt on THIS host to accept remote management over TLS.
+#
+#   client URI : qemu+tls://<this-host>/system
+#   tcp port   : 16514
+#   auth       : x509 client certificate (auth_tls = "none")
+#
+# Run as root from the repo:   sudo ./setup-libvirt-remote
+#
+# Idempotent: re-running reuses an existing CA/server cert (FORCE=1 to reissue
+# the server cert). Auto-detects whether the host runs the monolithic libvirtd
+# or the modular daemons (virtproxyd) and targets the right socket + conf.
+#
+# Environment overrides:
+#   LIBVIRT_TLS_ORG          org name baked into certs   (default: dev-machine-setup)
+#   LIBVIRT_TLS_DAYS         cert lifetime in days        (default: 3650)
+#   LIBVIRT_TLS_SERVER_CN    server cert CN/hostname      (default: hostname -f)
+#   SERVER_SAN_DNS           extra DNS SANs, space-sep
+#   SERVER_SAN_IP            extra IP  SANs, space-sep    (needed to connect by IP)
+#   LIBVIRT_TLS_ALLOWED_DN   restrict clients by cert DN, space-sep DN strings
+#   FORCE=1                  regenerate the server cert
+#
+set -euo pipefail
+
+PORT=16514
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tls-lib.sh
+. "$HERE/tls-lib.sh"
+
+SERVER_CN="${LIBVIRT_TLS_SERVER_CN:-$(hostname -f 2>/dev/null || hostname)}"
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "error: run as root, e.g.  sudo $0" >&2
+    exit 1
+fi
+
+for tool in certtool firewall-cmd systemctl usermod; do
+    command -v "$tool" >/dev/null 2>&1 || { echo "error: missing required tool: $tool" >&2; exit 1; }
+done
+
+# --- detect monolithic vs modular libvirt -----------------------------------
+if systemctl is-active --quiet virtproxyd.socket || systemctl is-active --quiet virtqemud.socket; then
+    MODE=modular
+    CONF=/etc/libvirt/virtproxyd.conf
+    TLS_SOCKET=virtproxyd-tls.socket
+    SVC=virtproxyd.service
+else
+    MODE=monolithic
+    CONF=/etc/libvirt/libvirtd.conf
+    TLS_SOCKET=libvirtd-tls.socket
+    SVC=libvirtd.service
+fi
+echo "Detected $MODE libvirt: configuring $CONF + $TLS_SOCKET"
+
+# --- PKI --------------------------------------------------------------------
+gen_ca
+gen_server_cert "$SERVER_CN"
+
+# Local client cert so this host can self-test with: virsh -c qemu+tls://localhost/system
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+gen_client_cert "$SERVER_CN-local" "$tmpdir"
+install -m 0644 "$tmpdir/clientcert.pem" "$PKI_LIBVIRT/clientcert.pem"
+install -m 0600 "$tmpdir/clientkey.pem"  "$PKI_LIBVIRT_PRIV/clientkey.pem"
+
+# --- daemon config ----------------------------------------------------------
+BEGIN="### BEGIN dev-machine-setup libvirt TLS ###"
+END="### END dev-machine-setup libvirt TLS ###"
+touch "$CONF"
+[ -f "$CONF.dms.bak" ] || cp -a "$CONF" "$CONF.dms.bak"
+# drop any previous managed block, then re-append (last assignment wins in libvirt conf)
+sed -i "/$BEGIN/,/$END/d" "$CONF"
+{
+    echo "$BEGIN"
+    echo 'auth_tls = "none"'   # rely on x509 client-cert verification
+    if [ -n "${LIBVIRT_TLS_ALLOWED_DN:-}" ]; then
+        printf 'tls_allowed_dn_list = ['
+        sep=""
+        for dn in $LIBVIRT_TLS_ALLOWED_DN; do printf '%s"%s"' "$sep" "$dn"; sep=", "; done
+        printf ']\n'
+    fi
+    echo "$END"
+} >> "$CONF"
+echo "Updated $CONF (backup: $CONF.dms.bak)"
+
+# --- enable the TLS socket --------------------------------------------------
+# Stop the daemon so it re-activates with the newly enabled socket fd.
+systemctl stop "$SVC" 2>/dev/null || true
+systemctl enable --now "$TLS_SOCKET"
+echo "Enabled $TLS_SOCKET"
+
+# --- firewall ---------------------------------------------------------------
+if systemctl is-active --quiet firewalld; then
+    firewall-cmd --quiet --permanent --add-port="$PORT/tcp"
+    firewall-cmd --quiet --reload
+    echo "Opened $PORT/tcp in firewalld"
+else
+    echo "firewalld inactive; ensure $PORT/tcp is reachable by clients" >&2
+fi
+
+# --- group membership -------------------------------------------------------
+if [ -n "${SUDO_USER:-}" ] && ! id -nG "$SUDO_USER" | tr ' ' '\n' | grep -qx libvirt; then
+    usermod -aG libvirt "$SUDO_USER"
+    echo "Added $SUDO_USER to the libvirt group (re-login to take effect)"
+fi
+
+echo
+echo "Validating PKI..."
+virt-pki-validate || echo "(virt-pki-validate reported issues; review above)"
+
+cat <<EOF
+
+Done. From a client machine:
+  1. Generate a client cert here:   sudo ./gen-client-cert <client-name>
+  2. Copy the printed files to the client's /etc/pki/CA + /etc/pki/libvirt.
+  3. Connect:                        virsh -c qemu+tls://$SERVER_CN/system
+     or in virt-manager: File > Add Connection > QEMU/KVM > Connect to remote
+     host over "TLS", hostname "$SERVER_CN".
+
+Self-test on this host:
+  virsh -c qemu+tls://$SERVER_CN/system list --all
+EOF

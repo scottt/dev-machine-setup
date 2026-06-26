@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#
+# Issue a libvirt TLS client certificate signed by the local CA created by
+# setup-libvirt-remote. Run this on the SERVER (where the CA key lives), then
+# copy the output files to the client machine.
+#
+#   sudo ./gen-client-cert <client-name> [output-dir]
+#
+# Default output-dir: ./client-certs/<client-name>
+# Produces: cacert.pem, clientcert.pem, clientkey.pem
+#
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tls-lib.sh
+. "$HERE/tls-lib.sh"
+
+if [ "$#" -lt 1 ]; then
+    echo "usage: sudo $0 <client-name> [output-dir]" >&2
+    exit 2
+fi
+NAME="$1"
+OUTDIR="${2:-$HERE/client-certs/$NAME}"
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "error: run as root (needs the CA key in $PKI_CA/private)" >&2
+    exit 1
+fi
+if [ ! -f "$PKI_CA_CERT" ] || [ ! -f "$PKI_CA_KEY" ]; then
+    echo "error: no CA found; run ./setup-libvirt-remote first" >&2
+    exit 1
+fi
+
+gen_client_cert "$NAME" "$OUTDIR"
+
+cat <<EOF
+
+Wrote client credentials to: $OUTDIR
+
+On the CLIENT machine install them system-wide:
+  sudo install -D -m 0644 cacert.pem     /etc/pki/CA/cacert.pem
+  sudo install -D -m 0644 clientcert.pem /etc/pki/libvirt/clientcert.pem
+  sudo install -D -m 0600 clientkey.pem  /etc/pki/libvirt/private/clientkey.pem
+
+...or per-user (no root needed) under \$HOME/.pki/libvirt/ with the CA at
+\$HOME/.pki/CA/cacert.pem.
+EOF
