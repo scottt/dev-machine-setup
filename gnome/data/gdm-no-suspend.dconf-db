@@ -1,0 +1,10 @@
+# Installed to /etc/dconf/db/gdm.d/06-no-suspend
+#
+# GDM runs its own GNOME session as the `gdm` user (see /etc/dconf/profile/gdm).
+# By default gnome-settings-daemon suspends the machine after it has been idle
+# at the login screen for a while. On a headless / shared dev machine this means
+# the box suspends itself whenever no user is logged in. Disable that.
+
+[org/gnome/settings-daemon/plugins/power]
+sleep-inactive-ac-type='nothing'
+sleep-inactive-battery-type='nothing'
