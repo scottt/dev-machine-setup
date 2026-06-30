@@ -1,0 +1,2 @@
+[packages."Microsoft.PowerShell"]
+args = ["--installer-type", "wix"]

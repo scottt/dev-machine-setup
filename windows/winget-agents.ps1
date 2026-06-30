@@ -1,3 +1,6 @@
+. "$PSScriptRoot\require-elevated.ps1"
+Start-ElevatedSelfIfNeeded -ScriptPath $PSCommandPath
+
 # Install the winget packages listed in agents.winget
 & "$PSScriptRoot\winget-install.ps1" "$PSScriptRoot\agents.winget"
 
