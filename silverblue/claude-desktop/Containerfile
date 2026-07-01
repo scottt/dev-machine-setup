@@ -1,0 +1,14 @@
+# Claude Desktop for Linux (official beta) is shipped only as a Debian/Ubuntu
+# .deb via Anthropic's apt repo. Fedora/RHEL are not supported, so we bake it
+# into an Ubuntu OCI image and run it from a Distrobox on Silverblue.
+FROM ubuntu:24.04
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates \
+ && curl -fsSLo /usr/share/keyrings/claude-desktop-archive-keyring.asc \
+      https://downloads.claude.ai/claude-desktop/key.asc \
+ && echo 'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/claude-desktop-archive-keyring.asc] https://downloads.claude.ai/claude-desktop/apt/stable stable main' \
+      > /etc/apt/sources.list.d/claude-desktop.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends claude-desktop \
+ && rm -rf /var/lib/apt/lists/*

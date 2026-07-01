@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+image="localhost/claude-desktop:latest"
+
+# Build the Ubuntu image with claude-desktop baked in.
+podman build -t "$image" "$script_dir"
+
+# (Re)create the Distrobox from the manifest and export the app to the host
+# launcher. --replace makes this idempotent / usable as an update path.
+distrobox assemble create --replace --file "$script_dir/distrobox.ini"

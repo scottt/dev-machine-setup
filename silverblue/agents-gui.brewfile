@@ -1,0 +1,2 @@
+# Containerized apps / dev environments (used by claude-desktop/)
+brew "distrobox"
