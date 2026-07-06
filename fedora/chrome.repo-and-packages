@@ -1,4 +1,8 @@
-google-chrome-stable
+# vim: filetype=yaml
+
+repo-file: data/google-chrome.repo
+packages:
+  - google-chrome-stable
 
 # For Bazzite, edit /etc/yum.repos.d/google-chrome.repo, change:
 # enabled=1
