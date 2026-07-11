@@ -1,10 +1,10 @@
-# Claude Desktop for Linux (official beta) is shipped only as a Debian/Ubuntu
+
 # .deb via Anthropic's apt repo. Fedora/RHEL are not supported, so we bake it
 # into an Ubuntu OCI image and run it from a Distrobox on Silverblue.
 FROM ubuntu:24.04
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl ca-certificates \
+ && apt-get install -y --no-install-recommends curl ca-certificates python-is-python3 \
  && curl -fsSLo /usr/share/keyrings/claude-desktop-archive-keyring.asc \
       https://downloads.claude.ai/claude-desktop/key.asc \
  && echo 'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/claude-desktop-archive-keyring.asc] https://downloads.claude.ai/claude-desktop/apt/stable stable main' \
@@ -12,3 +12,34 @@ RUN apt-get update \
  && apt-get update \
  && apt-get install -y --no-install-recommends claude-desktop \
  && rm -rf /var/lib/apt/lists/*
+
+
+# Custom `claude-gui` script sets XDG_CACHE_HOME
+#
+# https://github.com/89luca89/distrobox/issues/358
+#
+# Sharing $HOME/.cache/fontconfig between container and host
+# leads to font availability corruption.
+# Chrome and Electron apps like VSCode running on the host suddenly
+# can't use host system fonts.
+#
+# This happens when sharing the fontconfig cache between Ubuntu 24.04 and Fedora 44
+
+RUN printf '%s\n' \
+      '#!/usr/bin/env sh' \
+      'export XDG_CACHE_HOME="$HOME/.local/share/claude-gui-container-cache"' \
+      'exec /usr/bin/claude-desktop "$@"' \
+      > /usr/local/bin/claude-gui \
+ && chmod +x /usr/local/bin/claude-gui \
+ && mkdir -p /usr/local/share/applications \
+ && printf '%s\n' \
+      '[Desktop Entry]' \
+      'Name=Claude' \
+      'Comment=Claude Desktop' \
+      'Exec=/usr/local/bin/claude-gui %U' \
+      'Icon=claude-desktop' \
+      'Terminal=false' \
+      'Type=Application' \
+      'Categories=Office;Utility;' \
+      'StartupNotify=true' \
+      > /usr/local/share/applications/claude-gui.desktop

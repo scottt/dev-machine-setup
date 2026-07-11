@@ -123,4 +123,5 @@ tags
 # Persistent undo
 [._]*.un~
 
-.codex
+.codex/
+.claude/

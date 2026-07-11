@@ -12,3 +12,9 @@ podman build -t "$image" "$script_dir"
 # (Re)create the Distrobox from the manifest and export the app to the host
 # launcher. --replace makes this idempotent / usable as an update path.
 distrobox assemble create --replace --file "$script_dir/distrobox.ini"
+
+# Remove launchers from earlier versions and the generic container entry that
+# Distrobox creates during assembly. Only the GUI launcher should remain.
+distrobox enter claude -- distrobox-export --app claude-desktop --delete 2>/dev/null || true
+rm -f "$HOME/.local/share/applications/claude.desktop"
+rm -f "$HOME/.local/share/applications/claude-claude-desktop.desktop"
