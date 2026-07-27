@@ -1,5 +1,23 @@
 # Windows dev machine setup
 
+## Developer application policy
+
+`windows-preferences-apply-all.ps1` disables Smart App Control as a deliberate
+development-machine policy. Smart App Control has no per-application bypass and
+blocks unsigned developer-built executables, including Python launchers created
+by uv in project virtual environments.
+
+The setup writes Microsoft's documented
+`VerifiedAndReputablePolicyState = 0` machine policy and refreshes Code
+Integrity policies with `CiTool.exe`. Run the standalone policy step with:
+
+```powershell
+.\smart-app-control-disable.ps1
+```
+
+This lowers application-control protection for the whole machine and should be
+used only on machines intended for software development.
+
 ## Installing packages with winget
 
 Package lists are stored in `.winget` files — one winget package ID per line.

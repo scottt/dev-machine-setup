@@ -9,6 +9,18 @@ $ErrorActionPreference = 'Stop'
 & "$PSScriptRoot\dark-mode.ps1"
 & "$PSScriptRoot\time-format.ps1"
 & "$PSScriptRoot\clock-utc.ps1"
+& "$PSScriptRoot\smart-app-control-disable.ps1"
+function Write-SmartAppControlVerification {
+    Write-Output '=== SMART APP CONTROL ==='
+    Get-ItemProperty `
+        -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy' `
+        -Name VerifiedAndReputablePolicyState |
+        Format-List VerifiedAndReputablePolicyState
+
+    (& "$env:SystemRoot\System32\CiTool.exe" -lp -json | ConvertFrom-Json).Policies |
+        Where-Object FriendlyName -Like 'VerifiedAndReputableDesktop*' |
+        Format-Table FriendlyName, IsEnforced -AutoSize
+}
 & "$PSScriptRoot\network-set-default-private.ps1"
 function Get-DefaultNetworkContext {
     $route = Get-NetRoute -DestinationPrefix '0.0.0.0/0' -AddressFamily IPv4 |
@@ -80,6 +92,7 @@ function Write-SshdStartPwshVerification {
 
 $networkContext = Get-DefaultNetworkContext
 Write-NetworkSetDefaultPrivateVerification -NetworkContext $networkContext
+Write-SmartAppControlVerification
 Write-SshAgentAutostartVerification
 Write-SshdEnableVerification -NetworkContext $networkContext
 Write-FirewallAllowPingVerification
