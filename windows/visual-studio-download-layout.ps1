@@ -19,16 +19,18 @@ $logPath      = $layoutPath + "\vs-install.log"
 
 $bootstrapperUri  = "https://aka.ms/vs/17/release/vs_community.exe"
 
+New-Item -ItemType Directory -Path $layoutPath -Force | Out-Null
+
 if (-not (Test-Path -LiteralPath $bootstrapper)) {
   Invoke-WebRequest -Uri $bootstrapperUri -OutFile $bootstrapper
 }
 Unblock-File $bootstrapper
 
 # Create layout containing only the workloads you care about
-$components = $components | ForEach-Object { "-add $_" }
+$componentArguments = $components | ForEach-Object { '--add'; $_ }
 Start-Process $bootstrapper -Wait -NoNewWindow -ArgumentList (@(
   "--layout", "`"$layoutPath`"",
   "--lang", "en-US",
   "--includeRecommended",
   "--log", "`"$logPath`""
-) + $components)
+) + $componentArguments)

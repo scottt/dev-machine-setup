@@ -1,17 +1,14 @@
 $layoutPath   = "C:\VSLayout"
-$bootstrapper = $layoutPath +"\vs_Community.exe"
 #$logPath      = $layoutPath + "\vs-install.log"
 
-$bootstrapperUri  = "https://aka.ms/vs/17/release/vs_community.exe"
-
-if (-not (Test-Path -LiteralPath $bootstrapper)) {
-  Invoke-WebRequest -Uri $bootstrapperUri -OutFile $bootstrapper
+$setupPath = Join-Path $layoutPath 'vs_setup.exe'
+if (-not (Test-Path -LiteralPath $setupPath -PathType Leaf)) {
+  throw "Visual Studio layout is missing '$setupPath'. Run visual-studio-download-layout.ps1 first."
 }
-Unblock-File $bootstrapper
 
 # Install from layout
-Start-Process "$layoutPath\vs_setup.exe" -Wait -NoNewWindow -ArgumentList (@(
-  "--noweb", "--wait"
+Start-Process $setupPath -Wait -NoNewWindow -ArgumentList (@(
+  "--noweb", "--wait",
   "--installPath", "`"C:\Program Files\Microsoft Visual Studio\2022\Community`""
 ))
 

@@ -1,13 +1,9 @@
 # Mark the default network interface (the one carrying the default route) as Private.
 # Useful so Private-scoped firewall rules (e.g. OpenSSH-Server-In-TCP) apply to it.
+. "$PSScriptRoot\require-elevated.ps1"
+Start-ElevatedSelfIfNeeded -ScriptPath $PSCommandPath
 
-$currentIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-$principal = New-Object System.Security.Principal.WindowsPrincipal($currentIdentity)
-$isAdministrator = $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
-
-if (-not $isAdministrator) {
-	throw "Run this script from an elevated PowerShell session."
-}
+$ErrorActionPreference = 'Stop'
 
 # Pick the active default route: lowest combined (interface metric + route metric),
 # matching how Windows chooses the route used for off-link traffic.

@@ -6,10 +6,14 @@ Set-ItemProperty -Path "HKCU:\Control Panel\International" -Name "sTimeFormat" -
 $signature = @"
 using System;
 using System.Runtime.InteropServices;
-public class Win32 {
+public class DevSetupNativeMethods {
     [DllImport("user32.dll")]
     public static extern bool SendMessageTimeout(IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult);
 }
 "@
-Add-Type $signature
-[Win32]::SendMessageTimeout([IntPtr]::Zero, 0x1A, [UIntPtr]::Zero, "International", 0, 1000, [ref]([UIntPtr]::Zero))
+if (-not ('DevSetupNativeMethods' -as [type])) {
+    Add-Type $signature
+}
+$result = [UIntPtr]::Zero
+[void][DevSetupNativeMethods]::SendMessageTimeout(
+    [IntPtr]::Zero, 0x1A, [UIntPtr]::Zero, "International", 0, 1000, [ref]$result)
