@@ -1,0 +1,1 @@
+../fedora/disable-gdm-suspend.py
