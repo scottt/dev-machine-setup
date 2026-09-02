@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+image="localhost/chatgpt-desktop:latest"
+
+# Build the Fedora image with the chatgpt app baked in.
+podman build -t "$image" "$script_dir"
+
+# (Re)create the Distrobox from the manifest and export the app to the host
+# launcher. --replace makes this idempotent / usable as an update path.
+distrobox assemble create --replace --file "$script_dir/distrobox.ini"
+
+# Remove launchers left by earlier versions of this script, and the RPM's own
+# `chatgpt.desktop` if it was ever exported. Only the GUI launcher should remain.
+#
+# Deliberately NOT `distrobox-export --app <name> --delete`: that matches desktop
+# files by substring (`grep "Exec=.*${app}.*"`), so `--app chatgpt` also matches
+# our own `Exec=/usr/local/bin/chatgpt-gui` and un-exports the launcher assembly
+# just created — along with its icon. Delete the stale files by exact name.
+for stale in chatgpt chatgpt-chatgpt chatgpt-desktop chatgpt-chatgpt-desktop; do
+	rm -f "$HOME/.local/share/applications/${stale}.desktop"
+done

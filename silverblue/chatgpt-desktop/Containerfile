@@ -1,0 +1,54 @@
+ARG FEDORA_VER=44
+FROM registry.fedoraproject.org/fedora-toolbox:$FEDORA_VER AS prehend-dev
+
+# The app's built-in browser tab has no functional browser control bridge on
+# Linux, so ChatGPT drives a real Chrome in this container instead, via the
+# ChatGPT Chrome extension:
+#
+# https://learn.chatgpt.com/docs/chrome-extension
+
+RUN printf '%s\n' \
+      '[google-chrome]' \
+      'name=google-chrome' \
+      'baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64' \
+      'enabled=1' \
+      'gpgcheck=1' \
+      'gpgkey=https://dl.google.com/linux/linux_signing_key.pub' \
+      > /etc/yum.repos.d/google-chrome.repo
+
+RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/dnf \
+        dnf5 install -y \
+          https://persistent.oaistatic.com/codex-app-prod/linux/rpm/latest/chatgpt.x86_64.rpm \
+          google-chrome-stable
+
+# Custom `chatgpt-gui` script sets XDG_CACHE_HOME
+#
+# Named `chatgpt-gui`, not `chatgpt-desktop`, so it can't collide with the
+# upstream `chatgpt` binary and `chatgpt.desktop` entry the RPM ships.
+#
+# https://github.com/89luca89/distrobox/issues/358
+#
+# Sharing $HOME/.cache/fontconfig between container and host
+# leads to font availability corruption.
+# Chrome and Electron apps like VSCode running on the host suddenly
+# can't use host system fonts.
+
+RUN printf '%s\n' \
+      '#!/usr/bin/env sh' \
+      'export XDG_CACHE_HOME="$HOME/.local/share/chatgpt-gui-container-cache"' \
+      'exec /usr/bin/chatgpt "$@"' \
+      > /usr/local/bin/chatgpt-gui \
+ && chmod +x /usr/local/bin/chatgpt-gui \
+ && mkdir -p /usr/local/share/applications \
+ && printf '%s\n' \
+      '[Desktop Entry]' \
+      'Name=ChatGPT' \
+      'Comment=ChatGPT Desktop' \
+      'Exec=/usr/local/bin/chatgpt-gui %U' \
+      'Icon=chatgpt' \
+      'Terminal=false' \
+      'StartupWMClass=Chatgpt' \
+      'Type=Application' \
+      'Categories=Office;Utility;' \
+      'StartupNotify=true' \
+      > /usr/local/share/applications/chatgpt-gui.desktop
