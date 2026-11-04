@@ -9,10 +9,7 @@ RUN apt-get update \
       https://downloads.claude.ai/claude-desktop/key.asc \
  && echo 'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/claude-desktop-archive-keyring.asc] https://downloads.claude.ai/claude-desktop/apt/stable stable main' \
       > /etc/apt/sources.list.d/claude-desktop.list \
- && apt-get update \
- && apt-get install -y --no-install-recommends claude-desktop \
  && rm -rf /var/lib/apt/lists/*
-
 
 # Custom `claude-gui` script sets XDG_CACHE_HOME
 #
@@ -43,3 +40,29 @@ RUN printf '%s\n' \
       'Categories=Office;Utility;' \
       'StartupNotify=true' \
       > /usr/local/share/applications/claude-gui.desktop
+
+# Dependencies in their own layer below the app, so a release only rebuilds
+# the app's layer (0.6 GB) instead of also ~0.5 GB of unchanged libraries. The
+# layer doesn't depend on the app version; claude-desktop-install passes
+# DEPS_MONTH (YYYY-MM), which rebuilds it once a month. That build also pulls a
+# fresh ubuntu:24.04 base for OS updates.
+#
+# The dependency list comes from simulating the app's install, because
+# installing and removing the package isn't an option: its postrm deletes the
+# repo keyring and sources entry set up above.
+ARG DEPS_MONTH
+RUN test -n "$DEPS_MONTH" \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends $(apt-get install -s --no-install-recommends claude-desktop \
+      | awk '$1 == "Inst" && $2 != "claude-desktop" { print $2 }') \
+ && rm -rf /var/lib/apt/lists/*
+
+# The exact version is passed in by claude-desktop-install. A changed version
+# invalidates the cache from here on, so an unchanged rebuild is instant and a
+# new release always gets installed. The repo keeps old versions, so any
+# version from its Packages index can be pinned.
+ARG CLAUDE_VERSION
+RUN test -n "$CLAUDE_VERSION" \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends "claude-desktop=${CLAUDE_VERSION}" \
+ && rm -rf /var/lib/apt/lists/*

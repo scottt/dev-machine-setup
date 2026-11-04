@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# SSH forced command for machines that copy the desktop-app images from this one
+# with `<app>-install --from <this host>`. In this host's ~/.ssh/authorized_keys:
+#
+#   restrict,command="/path/to/silverblue/lib/distrobox-app-serve" ssh-ed25519 AAAA... user@client
+#
+# That key can then only run the two commands distrobox-app.sh sends:
+#
+#   podman image inspect <image>   for an image listed below
+#   podman save <image-id>         for the current ID of an image listed below
+#
+# so an unattended client's passphrase-less key can't do anything else here.
+
+set -euo pipefail
+
+images=(localhost/chatgpt-desktop:latest localhost/claude-desktop:latest)
+
+deny() {
+	printf 'distrobox-app-serve: not allowed: %s\n' "${SSH_ORIGINAL_COMMAND:-(interactive login)}" >&2
+	exit 1
+}
+
+# `read` splits on whitespace without glob expansion; anything with extra words
+# or shell syntax fails the exact matches below.
+read -r -a cmd <<<"${SSH_ORIGINAL_COMMAND:-}"
+
+if [ "${#cmd[@]}" -eq 4 ] && [ "${cmd[*]:0:3}" = "podman image inspect" ]; then
+	for img in "${images[@]}"; do
+		[ "${cmd[3]}" = "$img" ] && exec podman image inspect "$img"
+	done
+elif [ "${#cmd[@]}" -eq 3 ] && [ "${cmd[*]:0:2}" = "podman save" ] &&
+	[[ "${cmd[2]}" =~ ^[0-9a-f]{64}$ ]]; then
+	for img in "${images[@]}"; do
+		id="$(podman image inspect --format '{{.Id}}' "$img" 2>/dev/null)" || continue
+		[ "${cmd[2]}" = "$id" ] && exec podman save "$id"
+	done
+fi
+deny

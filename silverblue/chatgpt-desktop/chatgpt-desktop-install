@@ -1,17 +1,29 @@
 #!/usr/bin/env bash
+# shellcheck source-path=SCRIPTDIR disable=SC2034 # app_* / image / container are read by lib/distrobox-app.sh
+#
+# Install or update ChatGPT Desktop in a Distrobox. See README.md and
+# `chatgpt-desktop-install --help`.
 
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/distrobox-app.sh
+. "$script_dir/../lib/distrobox-app.sh"
 
+app_name="ChatGPT"
+app_id="chatgpt-desktop"
+app_dir="$script_dir"
+app_icon="chatgpt"
+app_process="ChatGPT" # /usr/lib/chatgpt/ChatGPT, the Electron main binary
 image="localhost/chatgpt-desktop:latest"
+container="chatgpt"
 
-# Build the Fedora image with the chatgpt app baked in.
-podman build -t "$image" "$script_dir"
-
-# (Re)create the Distrobox from the manifest and export the app to the host
-# launcher. --replace makes this idempotent / usable as an update path.
-distrobox assemble create --replace --file "$script_dir/distrobox.ini"
+app_versions() {
+	local chatgpt chrome
+	chatgpt="$(rpm_repo_latest https://persistent.oaistatic.com/codex-app-prod/linux/rpm/x86_64 chatgpt)"
+	chrome="$(rpm_repo_latest https://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome-stable)"
+	printf 'CHATGPT_VERSION=%s\nCHROME_VERSION=%s\n' "$chatgpt" "$chrome"
+}
 
 # Remove launchers left by earlier versions of this script, and the RPM's own
 # `chatgpt.desktop` if it was ever exported. Only the GUI launcher should remain.
@@ -20,6 +32,11 @@ distrobox assemble create --replace --file "$script_dir/distrobox.ini"
 # files by substring (`grep "Exec=.*${app}.*"`), so `--app chatgpt` also matches
 # our own `Exec=/usr/local/bin/chatgpt-gui` and un-exports the launcher assembly
 # just created — along with its icon. Delete the stale files by exact name.
-for stale in chatgpt chatgpt-chatgpt chatgpt-desktop chatgpt-chatgpt-desktop; do
-	rm -f "$HOME/.local/share/applications/${stale}.desktop"
-done
+app_remove_stale_launchers() {
+	local stale
+	for stale in chatgpt chatgpt-chatgpt chatgpt-desktop chatgpt-chatgpt-desktop; do
+		rm -f "$HOME/.local/share/applications/${stale}.desktop"
+	done
+}
+
+distrobox_app_main "$@"

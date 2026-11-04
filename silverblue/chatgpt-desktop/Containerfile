@@ -1,13 +1,27 @@
 ARG FEDORA_VER=44
-FROM registry.fedoraproject.org/fedora-toolbox:$FEDORA_VER AS prehend-dev
+FROM registry.fedoraproject.org/fedora-toolbox:$FEDORA_VER
+ARG FEDORA_VER
 
-# The app's built-in browser tab has no functional browser control bridge on
-# Linux, so ChatGPT drives a real Chrome in this container instead, via the
-# ChatGPT Chrome extension:
+# OpenAI's signed dnf repo. The repo file and key are byte-identical to the ones
+# the `chatgpt` RPM installs, so the RPM takes them over without .rpmnew files.
+# The key isn't published anywhere but inside that RPM; RPM-GPG-KEY-chatgpt.asc
+# was extracted from it and checked against repomd.xml.asc and the RPM signature.
 #
-# https://learn.chatgpt.com/docs/chrome-extension
+# Fingerprint: 3BFA 0E4A E8B8 CC16 A2D9  BA68 4A3B 4A56 6C46 60E4
 
+COPY RPM-GPG-KEY-chatgpt.asc \
+     /etc/pki/rpm-gpg/RPM-GPG-KEY-chatgpt-3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4.asc
 RUN printf '%s\n' \
+      '[openai-chatgpt]' \
+      'name=ChatGPT' \
+      'baseurl=https://persistent.oaistatic.com/codex-app-prod/linux/rpm/$basearch' \
+      'enabled=1' \
+      'type=rpm-md' \
+      'gpgcheck=1' \
+      'repo_gpgcheck=1' \
+      'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-chatgpt-3BFA0E4AE8B8CC16A2D9BA684A3B4A566C4660E4.asc' \
+      > /etc/yum.repos.d/chatgpt.repo \
+ && printf '%s\n' \
       '[google-chrome]' \
       'name=google-chrome' \
       'baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64' \
@@ -15,11 +29,6 @@ RUN printf '%s\n' \
       'gpgcheck=1' \
       'gpgkey=https://dl.google.com/linux/linux_signing_key.pub' \
       > /etc/yum.repos.d/google-chrome.repo
-
-RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/dnf \
-        dnf5 install -y \
-          https://persistent.oaistatic.com/codex-app-prod/linux/rpm/latest/chatgpt.x86_64.rpm \
-          google-chrome-stable
 
 # Custom `chatgpt-gui` script sets XDG_CACHE_HOME
 #
@@ -52,3 +61,55 @@ RUN printf '%s\n' \
       'Categories=Office;Utility;' \
       'StartupNotify=true' \
       > /usr/local/share/applications/chatgpt-gui.desktop
+
+# Dependencies of both apps, in their own layer below the apps, so an app
+# release only rebuilds the app's own layer (not ~0.7 GB of unchanged libraries).
+# The layer doesn't depend on app versions; chatgpt-desktop-install passes
+# DEPS_MONTH (YYYY-MM), which rebuilds it once a month. That build also pulls a
+# fresh fedora-toolbox base for OS updates. (Not `dnf5 upgrade` here: upgrading
+# the 1 GB base inside a layer stores every upgraded package twice.) A new app
+# release needing a dependency this layer lacks just pulls it into its own layer.
+#
+# The apps' requirements and weak deps (Recommends, which dnf installs by
+# default) are passed to dnf as capabilities, one per argument (some are rich
+# deps like `(libgtk-3.so.0()(64bit) or libgtk-4.so.1()(64bit))`), so dnf picks
+# providers exactly as installing the apps would. Without the Recommends,
+# mesa-libGL — and with it ~230 MB of Mesa upgrades — landed in ChatGPT's layer.
+# Naming every provider instead pulls in conflicting alternatives (wget1/wget2).
+#
+# dnf5 keeps repo metadata in /var/cache/libdnf5 (not dnf4's /var/cache/dnf),
+# so that's the cache mount; otherwise every layer that runs dnf stores its own
+# ~280 MB copy. --refresh: the cache mount outlives builds, and a stale repo
+# index wouldn't know about a newly pinned version.
+
+ARG DEPS_MONTH
+RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
+        test -n "$DEPS_MONTH" \
+     && dnf5 -q --refresh repoquery --qf '%{requires}\n%{recommends}\n' chatgpt google-chrome-stable \
+          | grep -v '^rpmlib(' | grep . | sort -u \
+          | xargs -d '\n' dnf5 install -y
+
+# Exact versions are passed in by chatgpt-desktop-install (`dnf` pin syntax,
+# VERSION-RELEASE). A changed version invalidates the cache from that layer on,
+# so an unchanged rebuild is instant and a new release always gets installed.
+#
+# Each layer is rebuilt along with everything above it, so the most frequently
+# released app goes on top: Chrome stable ships about weekly, ChatGPT several
+# times a week. A ChatGPT release then rebuilds only its own 1.9 GB layer; a
+# Chrome release rebuilds Chrome (0.5 GB) and ChatGPT.
+
+# The app's built-in browser tab has no functional browser control bridge on
+# Linux, so ChatGPT drives a real Chrome in this container instead, via the
+# ChatGPT Chrome extension:
+#
+# https://learn.chatgpt.com/docs/chrome-extension
+
+ARG CHROME_VERSION
+RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
+        test -n "$CHROME_VERSION" \
+     && dnf5 install -y --refresh "google-chrome-stable-${CHROME_VERSION}"
+
+ARG CHATGPT_VERSION
+RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
+        test -n "$CHATGPT_VERSION" \
+     && dnf5 install -y --refresh "chatgpt-${CHATGPT_VERSION}"

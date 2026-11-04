@@ -1,20 +1,35 @@
 #!/usr/bin/env bash
+# shellcheck source-path=SCRIPTDIR disable=SC2034 # app_* / image / container are read by lib/distrobox-app.sh
+#
+# Install or update Claude Desktop in a Distrobox. See README.md and
+# `claude-desktop-install --help`.
 
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/distrobox-app.sh
+. "$script_dir/../lib/distrobox-app.sh"
 
+app_name="Claude"
+app_id="claude-desktop"
+app_dir="$script_dir"
+app_icon="claude-desktop"
+app_process="claude-desktop"
 image="localhost/claude-desktop:latest"
+container="claude"
 
-# Build the Ubuntu image with claude-desktop baked in.
-podman build -t "$image" "$script_dir"
-
-# (Re)create the Distrobox from the manifest and export the app to the host
-# launcher. --replace makes this idempotent / usable as an update path.
-distrobox assemble create --replace --file "$script_dir/distrobox.ini"
+app_versions() {
+	printf 'CLAUDE_VERSION=%s\n' "$(apt_repo_latest \
+		https://downloads.claude.ai/claude-desktop/apt/stable/dists/stable/main/binary-amd64/Packages \
+		claude-desktop)"
+}
 
 # Remove launchers from earlier versions and the generic container entry that
 # Distrobox creates during assembly. Only the GUI launcher should remain.
-distrobox enter claude -- distrobox-export --app claude-desktop --delete 2>/dev/null || true
-rm -f "$HOME/.local/share/applications/claude.desktop"
-rm -f "$HOME/.local/share/applications/claude-claude-desktop.desktop"
+app_remove_stale_launchers() {
+	distrobox enter "$container" -- distrobox-export --app claude-desktop --delete 2>/dev/null || true
+	rm -f "$HOME/.local/share/applications/claude.desktop"
+	rm -f "$HOME/.local/share/applications/claude-claude-desktop.desktop"
+}
+
+distrobox_app_main "$@"
