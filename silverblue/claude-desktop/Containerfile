@@ -39,6 +39,7 @@ RUN printf '%s\n' \
       'Type=Application' \
       'Categories=Office;Utility;' \
       'StartupNotify=true' \
+      'StartupWMClass=com.anthropic.Claude' \
       > /usr/local/share/applications/claude-gui.desktop
 
 # Dependencies in their own layer below the app, so a release only rebuilds
