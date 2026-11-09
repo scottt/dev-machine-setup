@@ -17,6 +17,9 @@ app_icon="chatgpt"
 app_process="ChatGPT" # /usr/lib/chatgpt/ChatGPT, the Electron main binary
 image="localhost/chatgpt-desktop:latest"
 container="chatgpt"
+# OpenAI's releases have been landing in the repo around 02:30 CST (18:30 UTC),
+# so check then instead of at midnight, ~22 h after the fact.
+app_timer_calendar="*-*-* 02:30:00 Asia/Taipei"
 
 app_versions() {
 	local chatgpt chrome

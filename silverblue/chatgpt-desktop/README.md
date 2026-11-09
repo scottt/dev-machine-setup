@@ -46,8 +46,10 @@ and run `chatgpt-gui`.
 ## Update
 
 Updates are automatic. Install also enables a systemd user timer,
-`chatgpt-desktop-update.timer`, that once a day runs
-`chatgpt-desktop-install --if-newer`:
+`chatgpt-desktop-update.timer`, that runs `chatgpt-desktop-install --if-newer`
+daily at 02:30 CST (Asia/Taipei), shortly after OpenAI usually publishes. The
+time is `app_timer_calendar` in `chatgpt-desktop-install`; after changing it,
+run `./chatgpt-desktop-install --timer` to regenerate the timer:
 
 1. Reads the newest `chatgpt` and `google-chrome-stable` versions from the two
    repos' metadata (a few KB) and compares them with the versions recorded in the
