@@ -24,12 +24,18 @@ app_versions() {
 		claude-desktop)"
 }
 
-# Remove launchers from earlier versions and the generic container entry that
-# Distrobox creates during assembly. Only the GUI launcher should remain.
+# Remove launchers left by earlier versions of this script, and the package's
+# own launcher if it was ever exported. Only the GUI launcher should remain.
+#
+# Deliberately NOT `distrobox-export --app claude-desktop --delete`: it matches
+# the package's com.anthropic.Claude.desktop (`Exec=claude-desktop`) and deletes
+# the icons that file names, `claude-desktop` — the same icons our claude-gui
+# launcher uses, which assembly has just exported. Delete stale files by exact name.
 app_remove_stale_launchers() {
-	distrobox enter "$container" -- distrobox-export --app claude-desktop --delete 2>/dev/null || true
-	rm -f "$HOME/.local/share/applications/claude.desktop"
-	rm -f "$HOME/.local/share/applications/claude-claude-desktop.desktop"
+	local stale
+	for stale in claude claude-claude-desktop claude-com.anthropic.Claude; do
+		rm -f "$HOME/.local/share/applications/${stale}.desktop"
+	done
 }
 
 distrobox_app_main "$@"
