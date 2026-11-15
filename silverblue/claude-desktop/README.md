@@ -31,6 +31,18 @@ shared [`../lib/distrobox-app.sh`](../lib/distrobox-app.sh), also used by
 Then launch **Claude (on claude)** from the app grid, or `distrobox enter claude`
 and run `claude-gui`.
 
+### Wayland and input methods
+
+Verified on 2026-11-16 with Claude Desktop **5.11492.5**: the app selected native
+Wayland automatically in the host GNOME Wayland session, and the host's
+IBus/Chewing Taiwanese Mandarin input worked. Our `claude-gui` launcher passes
+no explicit Wayland or Wayland IME flags.
+
+In comparison, ChatGPT RPM **26.1111.21308-1** defaulted to X11/XWayland and
+needed `--ozone-platform=wayland`, `--enable-wayland-ime`, and
+`--wayland-text-input-version=3` for IBus/Chewing to work in its container. Those
+flags are now part of [our ChatGPT launcher](../chatgpt-desktop/README.md#wayland-and-input-methods).
+
 ## Update
 
 Claude Desktop does not self-update on Linux, so updates come from rebuilding the

@@ -30,7 +30,9 @@ RUN printf '%s\n' \
       'gpgkey=https://dl.google.com/linux/linux_signing_key.pub' \
       > /etc/yum.repos.d/google-chrome.repo
 
-# Custom `chatgpt-gui` script sets XDG_CACHE_HOME
+# Custom `chatgpt-gui` script enables native Wayland IME and sets XDG_CACHE_HOME.
+# XWayland input needs the IBus GTK module, which isn't installed in this image.
+# Use GNOME's Wayland text-input-v3 path for IBus/Chewing instead.
 #
 # Named `chatgpt-gui`, not `chatgpt-desktop`, so it can't collide with the
 # upstream `chatgpt` binary and `chatgpt.desktop` entry the RPM ships.
@@ -45,7 +47,7 @@ RUN printf '%s\n' \
 RUN printf '%s\n' \
       '#!/usr/bin/env sh' \
       'export XDG_CACHE_HOME="$HOME/.local/share/chatgpt-gui-container-cache"' \
-      'exec /usr/bin/chatgpt "$@"' \
+      'exec /usr/bin/chatgpt --ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3 "$@"' \
       > /usr/local/bin/chatgpt-gui \
  && chmod +x /usr/local/bin/chatgpt-gui \
  && mkdir -p /usr/local/share/applications \

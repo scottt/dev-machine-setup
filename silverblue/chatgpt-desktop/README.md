@@ -43,6 +43,28 @@ shared [`../lib/distrobox-app.sh`](../lib/distrobox-app.sh), also used by
 Then launch **ChatGPT (on chatgpt)** from the app grid, or `distrobox enter chatgpt`
 and run `chatgpt-gui`.
 
+### Wayland and input methods
+
+`chatgpt-gui` launches ChatGPT with `--ozone-platform=wayland`,
+`--enable-wayland-ime`, and `--wayland-text-input-version=3`. This uses GNOME's
+native Wayland input path and supports the host's IBus/Chewing Taiwanese Mandarin
+input method. The app's default XWayland backend did not support that input in
+this container, which lacks the IBus GTK module.
+
+Verified on 2026-11-16 with ChatGPT RPM **26.1111.21308-1**: the default launch
+used X11/XWayland, and IBus/Chewing worked after relaunching with the three flags
+above. In comparison, [Claude Desktop](../claude-desktop/README.md#wayland-and-input-methods)
+**5.11492.5** selected native Wayland automatically and supported IBus/Chewing
+without explicit Wayland or IME flags in our launcher.
+
+Launch from a Wayland desktop session using the exported app entry or
+`chatgpt-gui` so these settings are applied. Running `/usr/bin/chatgpt` directly
+bypasses the wrapper.
+
+After changing the launcher in `Containerfile`, run
+`./chatgpt-desktop-install` to rebuild the image and recreate the container even
+if upstream app versions have not changed. This closes ChatGPT if it is running.
+
 ## Update
 
 Updates are automatic. Install also enables a systemd user timer,
