@@ -73,6 +73,12 @@ Launch from a Wayland desktop session using the exported app entry or
 `chatgpt-gui` so these settings are applied. Running `/usr/bin/chatgpt` directly
 bypasses the wrapper.
 
+The desktop entry uses `StartupWMClass=chatgpt`, matching the app's observed
+Wayland app ID (ChatGPT RPM **26.1111.21308-1**, verified on 2026-11-16).
+This match is case-sensitive: `Chatgpt` leaves GNOME unable to associate the
+running window with the exported launcher, causing a generic taskbar icon even
+when the exported `chatgpt.png` icon is present.
+
 After changing the launcher in `Containerfile`, run
 `./chatgpt-desktop-install --build` even if upstream app versions have not
 changed, then `./chatgpt-desktop-install --deploy` after closing ChatGPT.

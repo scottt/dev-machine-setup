@@ -33,6 +33,8 @@ RUN printf '%s\n' \
 # Custom `chatgpt-gui` script enables native Wayland IME and sets XDG_CACHE_HOME.
 # XWayland input needs the IBus GTK module, which isn't installed in this image.
 # Use GNOME's Wayland text-input-v3 path for IBus/Chewing instead.
+# StartupWMClass must match the Wayland app ID (`chatgpt`, case-sensitive)
+# so GNOME associates the running window with the exported launcher and icon.
 #
 # Named `chatgpt-gui`, not `chatgpt-desktop`, so it can't collide with the
 # upstream `chatgpt` binary and `chatgpt.desktop` entry the RPM ships.
@@ -58,7 +60,7 @@ RUN printf '%s\n' \
       'Exec=/usr/local/bin/chatgpt-gui %U' \
       'Icon=chatgpt' \
       'Terminal=false' \
-      'StartupWMClass=Chatgpt' \
+      'StartupWMClass=chatgpt' \
       'Type=Application' \
       'Categories=Office;Utility;' \
       'StartupNotify=true' \
