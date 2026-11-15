@@ -3,9 +3,43 @@
 - **`distrobox-app.sh`** — install / update logic behind
   [`../chatgpt-desktop/chatgpt-desktop-install`](../chatgpt-desktop) and
   [`../claude-desktop/claude-desktop-install`](../claude-desktop): version-pinned
-  image builds, the `--check` / `--if-newer` modes, the update timer, and `--from`.
+  image builds, separate `--build` / `--deploy` modes, the `--check` / `--if-newer`
+  modes, the update timer, and `--from`.
 - **`distrobox-app-serve`** — SSH forced command that lets other machines copy
   the images from this one (below).
+
+## Build and deploy separately
+
+Both installers support the same two phases:
+
+```bash
+./chatgpt-desktop/chatgpt-desktop-install --build
+./claude-desktop/claude-desktop-install --build
+
+# Later, after closing each app:
+./chatgpt-desktop/chatgpt-desktop-install --deploy
+./claude-desktop/claude-desktop-install --deploy
+```
+
+`--build` produces the tagged image without replacing a container, exporting
+launchers, or changing timers. It works while the app is running and on a build
+host with no app container. `--deploy` uses the existing local image without
+fetching metadata or building anything, and exports the launcher. It leaves
+timers alone and fails before replacing anything if the image is missing or
+the app is running. Use `--deploy --force` to explicitly close a running app.
+Distrobox's first-start setup may still install container integration packages.
+
+With no mode, the installer still builds and deploys, then installs the update
+timer. This combined mode also requires `--force` to close a running app.
+`--no-timer` skips timer installation for the combined mode.
+
+Existing timers still run `--if-newer`: build/copy if needed, then deploy when
+the app is closed. A manual `--build` does not disable those timers. To keep tt0
+strictly build-only, disable any previously installed timers there:
+
+```bash
+systemctl --user disable --now chatgpt-desktop-update.timer claude-desktop-update.timer
+```
 
 ## Copying the images to other machines on the LAN
 
@@ -13,6 +47,10 @@ One machine (tt0) builds the images; the others copy them from it over SSH
 instead of building their own:
 
     ssh tt0 podman save <image-id> | podman load
+
+On tt0, run the two `--build` commands above. Clients read the tagged image,
+not the deployed container: tt0 can keep running an older image or have no
+container at all. A successful build is immediately available to clients.
 
 There's no registry or TLS to set up, and nothing is published anywhere: the
 images contain proprietary apps (Claude Desktop, ChatGPT, Google Chrome) and
@@ -66,9 +104,18 @@ port forwarding, nothing else.
    ./chatgpt-desktop/chatgpt-desktop-install --from tt0-images
    ```
 
-`--from` works with every mode (`--check`, `--if-newer`, `--no-timer`), and the
-generated timer keeps it. To switch a client back to building locally, re-run
-the install without `--from`.
+`--from` works with `--build`, `--check`, `--if-newer`, the combined install
+(including `--no-timer`), and `--timer`. The generated timer keeps it. To copy
+now and deploy later on a client:
+
+```bash
+./chatgpt-desktop/chatgpt-desktop-install --build --from tt0-images
+./chatgpt-desktop/chatgpt-desktop-install --deploy
+```
+
+`--deploy` accepts no `--from` because it uses only the local image. To switch a
+client back to building locally, re-run the combined install or `--timer`
+without `--from`.
 
 A full copy is the whole image (Claude ~1.3 GB, ChatGPT ~4.1 GB uncompressed);
 `podman save` doesn't skip layers the client already has. That's under a minute

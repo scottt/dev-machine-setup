@@ -35,11 +35,18 @@ source_host="" # set by --from
 
 usage() {
 	cat <<EOF
-usage: $(basename "$0") [--check | --if-newer | --no-timer | --timer] [--from HOST]
+usage: $(basename "$0") [--build | --deploy | --check | --if-newer | --timer]
+       [--from HOST] [--no-timer] [--force]
 
   (no option)  build the image with the newest upstream versions, (re)create the
                '$container' Distrobox, and install the ${app_id}-update.timer
-  --no-timer   same, without installing the systemd user timer
+  --build      only build the image (or copy it with --from); leave the container,
+               launchers, and timer alone, even while $app_name is running
+  --deploy     only (re)create the container from the existing local image;
+               no image download, build, or timer changes
+  --force      allow install or --deploy to close a running $app_name;
+               without this flag, deployment refuses while the app is running
+  --no-timer   combined install without installing the systemd user timer
   --timer      only (re)install the ${app_id}-update.timer
   --check      print installed and latest versions; exit 0 if up to date,
                100 if an update is available
@@ -47,8 +54,9 @@ usage: $(basename "$0") [--check | --if-newer | --no-timer | --timer] [--from HO
                changed; recreate the container only while $app_name isn't running,
                otherwise notify and retry on the next run
   --from HOST  copy the image from HOST over SSH instead of building it here;
-               "latest" is HOST's current image. Combines with the modes above,
-               and the timer keeps using HOST.
+               "latest" is HOST's current image, whether deployed there or not.
+               Not valid with --deploy; use --build --from HOST first.
+               An installed timer keeps using HOST.
 EOF
 }
 
@@ -145,6 +153,24 @@ recreate_container() {
 		app_remove_stale_launchers
 	fi
 	remove_image "$old_id"
+}
+
+# The build/pull phase never needs to replace a container. Keep the running-app
+# guard at the deployment boundary, including for the combined install mode.
+deploy_image() {
+	local force="$1"
+	if [ -z "$(image_id)" ]; then
+		log "no local image $image; run ${app_id}-install --build first"
+		return 1
+	fi
+	if app_running; then
+		if [ "$force" != yes ]; then
+			log "$app_name is running; image ready but not deployed. Quit it and run ${app_id}-install --deploy, or use --deploy --force to close it."
+			return 1
+		fi
+		log "$app_name is running; forced deployment will close it"
+	fi
+	recreate_container
 }
 
 install_timer() {
@@ -250,16 +276,21 @@ do_check() {
 	up_to_date || return 100
 }
 
-do_install() {
-	local timer="$1" latest latest_id
+do_build() {
+	local latest latest_id
 	resolve_latest
 	# Building is always run: it's instant when cached, and picks up local
 	# Containerfile edits that don't change any version.
 	if [ -z "$source_host" ] || ! up_to_date; then
 		obtain_image
 	fi
-	app_running && log "$app_name is running; recreating the container will close it"
-	recreate_container
+	log "image ready: $image"
+}
+
+do_install() {
+	local timer="$1" force="$2"
+	do_build
+	deploy_image "$force"
 	[ "$timer" = no ] || install_timer
 }
 
@@ -276,21 +307,24 @@ do_if_newer() {
 		if app_running; then
 			log "$app_name is running; update pending until it's closed"
 			[ "$built" = no ] || notify "$app_name update ready" \
-				"Quit $app_name to let the next update check install it, or run ${app_id}-install."
+				"Quit $app_name to let the next update check install it, or run ${app_id}-install --deploy --force."
 		else
-			recreate_container
+			deploy_image no
 			log "installed $latest"
 		fi
 	fi
 }
 
 distrobox_app_main() {
-	local mode=install timer=yes
+	local mode=install timer=yes force=no
 	while [ $# -gt 0 ]; do
 		case "$1" in
-		--check | --if-newer) mode="${1#--}" ;;
+		--build | --deploy | --check | --if-newer | --timer)
+			[ "$mode" = install ] || { log "choose only one mode"; return 2; }
+			mode="${1#--}"
+			;;
 		--no-timer) timer=no ;;
-		--timer) mode=timer ;;
+		--force) force=yes ;;
 		--from)
 			[ $# -ge 2 ] || { usage >&2; return 2; }
 			source_host="$2"
@@ -301,8 +335,22 @@ distrobox_app_main() {
 		esac
 		shift
 	done
+	if [ "$mode" = deploy ] && [ -n "$source_host" ]; then
+		log "--deploy uses the local image; run --build --from HOST first"
+		return 2
+	fi
+	if [ "$force" = yes ] && [ "$mode" != install ] && [ "$mode" != deploy ]; then
+		log "--force only applies to install or --deploy"
+		return 2
+	fi
+	if [ "$timer" = no ] && [ "$mode" != install ]; then
+		log "--no-timer only applies to the combined install; --build and --deploy never change timers"
+		return 2
+	fi
 	case "$mode" in
-	install) do_install "$timer" ;;
+	install) do_install "$timer" "$force" ;;
+	build) do_build ;;
+	deploy) deploy_image "$force" ;;
 	check) do_check ;;
 	if-newer) do_if_newer ;;
 	timer) install_timer ;;

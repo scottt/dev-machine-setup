@@ -43,6 +43,18 @@ shared [`../lib/distrobox-app.sh`](../lib/distrobox-app.sh), also used by
 Then launch **ChatGPT (on chatgpt)** from the app grid, or `distrobox enter chatgpt`
 and run `chatgpt-gui`.
 
+To build now without touching the running app, then deploy later:
+
+```bash
+./chatgpt-desktop-install --build
+./chatgpt-desktop-install --deploy  # after closing ChatGPT
+```
+
+Deployment refuses while ChatGPT is running unless you pass `--force`.
+`--deploy` uses the local image without downloading or rebuilding it. Neither mode
+changes timers; existing update timers can still deploy when the app is closed.
+See [the shared tooling docs](../lib/README.md#build-and-deploy-separately).
+
 ### Wayland and input methods
 
 `chatgpt-gui` launches ChatGPT with `--ozone-platform=wayland`,
@@ -62,8 +74,9 @@ Launch from a Wayland desktop session using the exported app entry or
 bypasses the wrapper.
 
 After changing the launcher in `Containerfile`, run
-`./chatgpt-desktop-install` to rebuild the image and recreate the container even
-if upstream app versions have not changed. This closes ChatGPT if it is running.
+`./chatgpt-desktop-install --build` even if upstream app versions have not
+changed, then `./chatgpt-desktop-install --deploy` after closing ChatGPT.
+Use `--deploy --force` to explicitly close it during deployment.
 
 ## Update
 
@@ -88,7 +101,10 @@ Manually:
 ```bash
 ./chatgpt-desktop-install --check      # installed vs. latest; exit 100 if outdated
 ./chatgpt-desktop-install --if-newer   # what the timer runs
-./chatgpt-desktop-install              # update now (closes ChatGPT if running)
+./chatgpt-desktop-install --build     # build only; safe while ChatGPT is running
+./chatgpt-desktop-install --deploy    # deploy the local image after closing ChatGPT
+./chatgpt-desktop-install --deploy --force # deploy and close ChatGPT if running
+./chatgpt-desktop-install             # build + deploy + timer; refuses if running
 systemctl --user list-timers chatgpt-desktop-update.timer
 journalctl --user -u chatgpt-desktop-update.service
 ```
@@ -147,6 +163,9 @@ Other machines can copy the image from tt0 over SSH instead of building it:
 `./chatgpt-desktop-install --from tt0-images`. See
 [`../lib/README.md`](../lib/README.md#copying-the-images-to-other-machines-on-the-lan)
 for the one-time SSH key setup.
+Only the built image must exist on tt0; it does not need to be deployed there.
+Use `--build --from tt0-images` to copy without deploying locally, then
+`--deploy` when ready.
 
 ## Alternative to watch: Universal Blue Homebrew cask
 

@@ -31,6 +31,18 @@ shared [`../lib/distrobox-app.sh`](../lib/distrobox-app.sh), also used by
 Then launch **Claude (on claude)** from the app grid, or `distrobox enter claude`
 and run `claude-gui`.
 
+To build now without touching the running app, then deploy later:
+
+```bash
+./claude-desktop-install --build
+./claude-desktop-install --deploy  # after closing Claude
+```
+
+Deployment refuses while Claude is running unless you pass `--force`.
+`--deploy` uses the local image without downloading or rebuilding it. Neither mode
+changes timers; existing update timers can still deploy when the app is closed.
+See [the shared tooling docs](../lib/README.md#build-and-deploy-separately).
+
 ### Wayland and input methods
 
 Verified on 2026-11-16 with Claude Desktop **5.11492.5**: the app selected native
@@ -65,7 +77,10 @@ Manually:
 ```bash
 ./claude-desktop-install --check      # installed vs. latest; exit 100 if outdated
 ./claude-desktop-install --if-newer   # what the timer runs
-./claude-desktop-install              # update now (closes Claude if running)
+./claude-desktop-install --build     # build only; safe while Claude is running
+./claude-desktop-install --deploy    # deploy the local image after closing Claude
+./claude-desktop-install --deploy --force # deploy and close Claude if running
+./claude-desktop-install             # build + deploy + timer; refuses if running
 systemctl --user list-timers claude-desktop-update.timer
 journalctl --user -u claude-desktop-update.service
 ```
@@ -99,6 +114,9 @@ Other machines can copy the image from tt0 over SSH instead of building it:
 `./claude-desktop-install --from tt0-images`. See
 [`../lib/README.md`](../lib/README.md#copying-the-images-to-other-machines-on-the-lan)
 for the one-time SSH key setup.
+Only the built image must exist on tt0; it does not need to be deployed there.
+Use `--build --from tt0-images` to copy without deploying locally, then
+`--deploy` when ready.
 
 ## Alternative to watch: Universal Blue Homebrew cask
 
