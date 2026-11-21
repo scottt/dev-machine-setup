@@ -130,14 +130,25 @@ renderer so the patch no longer matches, the build stops before tagging or
 deploying a new image. Review the changed renderer and update the patch
 before retrying. The timer sees patch changes even on the same RPM version.
 
-For enrollment and authenticated connections, the app needs read/write access
-to the host's `/dev/tpmrm0`. If Fedora denies access, run these commands in a
-**host** terminal to grant temporary access to your desktop user:
+#### How ChatGPT uses the TPM
+
+In the surveyed Linux build (`26.1117.31558-1`), the Remote Control client
+opens `/dev/tpmrm0` and creates an ECDSA P-256 device key with the TPM.
+ChatGPT verifies the account during enrollment and registers the public key.
+The client uses the TPM to sign enrollment and connection challenges, so
+the service can verify that it is talking to the enrolled device. The PIN
+pairs that client with the computer you want to control.
+
+Run [`chatgpt-tpm-grant`](./chatgpt-tpm-grant) on the **host** if the app
+cannot open the TPM device. It adds a read/write ACL for your current user.
+Pass a username to grant access to another user. The ACL applies to
+processes running under that user and lasts until it is removed or the
+device node is recreated. Save the current ACL if you want to restore it
+after testing:
 
 ```bash
 tpm_acl="$(mktemp)"
-getfacl -p /dev/tpmrm0 > "$tpm_acl" &&
-  sudo setfacl -m "u:$(id -un):rw-" /dev/tpmrm0
+getfacl -p /dev/tpmrm0 > "$tpm_acl" && ./chatgpt-tpm-grant
 ```
 
 On the device you want to control, generate a PIN under **Settings →

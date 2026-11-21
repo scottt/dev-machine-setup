@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Grant one host user access to the TPM resource manager used by ChatGPT.
+set -euo pipefail
+
+usage() {
+	printf 'Usage: %s [USER]\n' "${0##*/}"
+}
+
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+	usage
+	exit 0
+fi
+if (( $# > 1 )); then
+	usage >&2
+	exit 2
+fi
+
+if (( EUID == 0 )); then
+	target_user="${1:-${SUDO_USER:-}}"
+	if [[ -z "$target_user" ]]; then
+		printf 'Specify the desktop user when running as root.\n' >&2
+		exit 2
+	fi
+else
+	target_user="${1:-$(id -un)}"
+fi
+target_uid="$(id -u -- "$target_user")"
+
+device=/dev/tpmrm0
+if [[ ! -c "$device" ]]; then
+	printf '%s is unavailable. Run this script on the Linux host with a TPM.\n' "$device" >&2
+	exit 1
+fi
+
+if (( EUID == 0 )); then
+	exec setfacl -m "u:$target_uid:rw-" "$device"
+fi
+exec sudo -- setfacl -m "u:$target_uid:rw-" "$device"
