@@ -93,11 +93,10 @@ time is `app_timer_calendar` in `chatgpt-desktop-install`; after changing it,
 run `./chatgpt-desktop-install --timer` to regenerate the timer:
 
 1. Reads the newest `chatgpt` and `google-chrome-stable` versions from the two
-   repos' metadata (a few KB) and compares them with the versions recorded in the
-   image label `dev-machine-setup.versions`. If they match, it's done.
-2. Otherwise rebuilds the image with the new versions as build args
-   (`CHATGPT_VERSION`, `CHROME_VERSION`). Only the layers from the changed
-   package on are rebuilt.
+   repos' metadata (a few KB) and hashes the Remote Control patch. It compares
+   those values with the image label `dev-machine-setup.versions`.
+2. When a version or patch changes, it rebuilds the image with the new pins.
+   The Chrome layer can be reused when only ChatGPT or its patch changes.
 3. Recreates the `chatgpt` container on the new image — unless ChatGPT is running.
    Then it sends a desktop notification and applies the update on the first run
    after ChatGPT is closed.
@@ -117,6 +116,37 @@ journalctl --user -u chatgpt-desktop-update.service
 
 Use `./chatgpt-desktop-install --no-timer` to install without the timer. The
 timer runs the script from this checkout, so re-run the install if you move it.
+
+### Control other devices
+
+The image build installs the signed ChatGPT RPM and applies
+`patch-remote-control.py` to its renderer in the same layer. The patch exposes
+**Settings → Connections → Control other devices**. The app still uses normal
+ChatGPT account verification, TPM-backed enrollment, and the other device's
+8-digit pairing PIN.
+
+Tested with ChatGPT `26.1117.31558-1`. If an upstream release changes the
+renderer so the patch no longer matches, the build stops before tagging or
+deploying a new image. Review the changed renderer and update the patch
+before retrying. The timer sees patch changes even on the same RPM version.
+
+For enrollment and authenticated connections, the app needs read/write access
+to the host's `/dev/tpmrm0`. If Fedora denies access, run these commands in a
+**host** terminal to grant temporary access to your desktop user:
+
+```bash
+tpm_acl="$(mktemp)"
+getfacl -p /dev/tpmrm0 > "$tpm_acl" &&
+  sudo setfacl -m "u:$(id -un):rw-" /dev/tpmrm0
+```
+
+On the device you want to control, generate a PIN under **Settings →
+Connections → Control this Mac or PC → Add**. Enter that PIN under **Control
+other devices → Add** on Linux. When finished, restore the original TPM ACL:
+
+```bash
+sudo setfacl --restore=- < "$tpm_acl" && rm -f "$tpm_acl"
+```
 
 ### Image layers
 

@@ -91,7 +91,7 @@ RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
         test -n "$DEPS_MONTH" \
      && dnf5 -q --refresh repoquery --qf '%{requires}\n%{recommends}\n' chatgpt google-chrome-stable \
           | grep -v '^rpmlib(' | grep . | sort -u \
-          | xargs -d '\n' dnf5 install -y
+          | xargs -d '\n' dnf5 install -y python3
 
 # Exact versions are passed in by chatgpt-desktop-install (`dnf` pin syntax,
 # VERSION-RELEASE). A changed version invalidates the cache from that layer on,
@@ -113,7 +113,15 @@ RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
         test -n "$CHROME_VERSION" \
      && dnf5 install -y --refresh "google-chrome-stable-${CHROME_VERSION}"
 
+# Patch the renderer in the RPM install layer to avoid storing a second ASAR.
+COPY patch-remote-control.py /usr/local/libexec/chatgpt-patch-remote-control.py
 ARG CHATGPT_VERSION
+ARG CHATGPT_REMOTE_CONTROL_PATCH
 RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
         test -n "$CHATGPT_VERSION" \
-     && dnf5 install -y --refresh "chatgpt-${CHATGPT_VERSION}"
+     && if [ -n "$CHATGPT_REMOTE_CONTROL_PATCH" ]; then \
+          printf '%s  %s\n' "$CHATGPT_REMOTE_CONTROL_PATCH" /usr/local/libexec/chatgpt-patch-remote-control.py \
+            | sha256sum -c -; \
+        fi \
+     && dnf5 install -y --refresh "chatgpt-${CHATGPT_VERSION}" \
+     && python3 -I /usr/local/libexec/chatgpt-patch-remote-control.py /usr/lib/chatgpt/resources/app.asar

@@ -22,10 +22,12 @@ container="chatgpt"
 app_timer_calendar="*-*-* 02:30:00 Asia/Taipei"
 
 app_versions() {
-	local chatgpt chrome
+	local chatgpt chrome patch_hash
 	chatgpt="$(rpm_repo_latest https://persistent.oaistatic.com/codex-app-prod/linux/rpm/x86_64 chatgpt)"
 	chrome="$(rpm_repo_latest https://dl.google.com/linux/chrome/rpm/stable/x86_64 google-chrome-stable)"
-	printf 'CHATGPT_VERSION=%s\nCHROME_VERSION=%s\n' "$chatgpt" "$chrome"
+	patch_hash="$(sha256sum < "$app_dir/patch-remote-control.py")" || return 1
+	printf 'CHATGPT_VERSION=%s\nCHROME_VERSION=%s\nCHATGPT_REMOTE_CONTROL_PATCH=%s\n' \
+		"$chatgpt" "$chrome" "${patch_hash%% *}"
 }
 
 # Remove launchers left by earlier versions of this script, and the RPM's own
