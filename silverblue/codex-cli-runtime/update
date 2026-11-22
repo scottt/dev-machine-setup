@@ -1,0 +1,84 @@
+#!/usr/bin/python3
+"""Install a verified OpenAI Linux runtime and atomically select it for Codex CLI."""
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import re
+import subprocess
+import tempfile
+
+ROOT = Path.home() / ".local/share/codex-cli-runtime"
+SKILLS = ("presentations", "documents", "pdf", "spreadsheets")
+
+
+def fetch(url, path):
+    subprocess.run(["/usr/bin/curl", "--fail", "--silent", "--show-error", "--location",
+                    "--proto", "=https", "--proto-redir", "=https", "--retry", "2",
+                    "--max-time", "1200", "--output", path, url], check=True)
+
+
+def validate(root, manifest):
+    metadata = json.loads((root / "runtime.json").read_bytes())
+    for key in ("targetArch", "targetPlatform", "bundleVersion"):
+        if metadata[key] != manifest[key]:
+            raise ValueError(f"Runtime manifest mismatch: {key}")
+    deps = root / "dependencies"
+    subprocess.run([deps / "python/bin/python3", "-I", "-B", "-c",
+                    "import docx, openpyxl, ssl"], check=True)
+    subprocess.run([deps / "node/bin/node", "--input-type=module", "-e",
+                    "await import('./dist/artifact_tool.mjs')"],
+                   cwd=deps / "node/node_modules/@oai/artifact-tool", check=True)
+    for tool in ("soffice", "pdftoppm"):
+        if not os.access(deps / "bin/override" / tool, os.X_OK):
+            raise ValueError(f"Missing executable: {tool}")
+    for name in SKILLS:
+        skill = root / "plugins/openai-primary-runtime/plugins" / name / "skills" / name / "SKILL.md"
+        if not skill.is_file():
+            raise ValueError(f"Missing skill: {name}")
+
+
+def update():
+    arch = {"x86_64": "x64", "aarch64": "arm64"}[platform.machine()]
+    url = f"https://persistent.oaistatic.com/codex-primary-runtime/latest/linux-{arch}/LATEST.json"
+    releases = ROOT / "releases"
+    releases.mkdir(parents=True, exist_ok=True)
+    with (ROOT / "update.lock").open("a") as lock, tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        stage = Path(tmp)
+        receipt = stage / "LATEST.json"
+        fetch(url, receipt)
+        m = json.loads(receipt.read_bytes())
+        sha = m["archiveSha256"]
+        if not re.fullmatch(r"[0-9a-f]{64}", sha) or (
+            m["targetPlatform"], m["targetArch"], m["format"], m["runtimeRootDirectoryName"]
+        ) != ("linux", arch, "tar.xz", "codex-primary-runtime"):
+            raise ValueError("Unexpected primary runtime manifest")
+        release = releases / sha
+        if not release.exists():
+            archive = stage / "runtime.tar.xz"
+            fetch(m["archiveUrl"], archive)
+            with archive.open("rb") as stream:
+                if archive.stat().st_size != m["archiveSizeBytes"] or hashlib.file_digest(stream, "sha256").hexdigest() != sha:
+                    raise ValueError("Runtime archive failed size or SHA-256 verification")
+            unpacked = stage / "unpacked"
+            unpacked.mkdir()
+            # The verified Linux distribution includes absolute system terminfo symlinks.
+            subprocess.run(["/usr/bin/tar", "--extract", "--xz", "--no-same-owner",
+                            "--file", archive, "--directory", unpacked], check=True)
+            candidate = stage / "unpacked/codex-primary-runtime"
+            validate(candidate, m)
+            receipt.rename(candidate / "release-receipt.json")
+            candidate.rename(release)
+        else:
+            validate(release, m)
+        link = stage / "current"
+        link.symlink_to(release)
+        link.replace(ROOT / "current")
+        print(f"Active runtime {m['bundleVersion']} ({sha})")
+
+
+if __name__ == "__main__":
+    update()

@@ -1,0 +1,8 @@
+[Unit]
+Description=Check the Codex CLI runtime release daily
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=30min
+Persistent=true
+[Install]
+WantedBy=timers.target

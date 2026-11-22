@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd -- "$(dirname -- "$0")"
+root="$HOME/.local/share/codex-cli-runtime"
+units="$HOME/.config/systemd/user"
+skills="$HOME/.agents/skills"
+mkdir -p "$root/bin" "$units" "$skills"
+install -m 755 update "$root/bin/update"
+install -m 644 server.py "$root/bin/server.py"
+install -m 644 codex-cli-runtime.{service,timer} "$units/"
+systemctl --user daemon-reload
+systemctl --user start codex-cli-runtime.service
+if [[ ! -x "$root/venv/bin/python" ]]; then uv venv --python /usr/bin/python3 "$root/venv"; fi
+uv pip sync --python "$root/venv/bin/python" requirements.lock
+codex mcp add workspace-runtime -- "$root/venv/bin/python" "$root/bin/server.py"
+for name in presentations documents pdf spreadsheets; do
+    target="plugins/openai-primary-runtime/plugins/$name/skills/$name"
+    link="$skills/$name"
+    if [[ -e "$link" || -L "$link" ]]; then
+        case "$(readlink "$link" || true)" in
+            "$root/current/$target"|"$HOME/.cache/codex-runtimes/codex-primary-runtime/$target") ;;
+            *) echo "Unmanaged skill at $link" >&2; exit 1 ;;
+        esac
+    fi
+    ln -sfnT "$root/current/$target" "$link"
+done
+systemctl --user enable --now codex-cli-runtime.timer

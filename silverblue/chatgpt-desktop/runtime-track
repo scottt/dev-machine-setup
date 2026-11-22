@@ -117,8 +117,10 @@ def main():
     save(dest / "result.json", result)
     work = dest / "work"
     work.mkdir()
+    standalone = Path.home() / ".local/share/codex-cli-runtime/current"
+    extra_mount = ["--ro-bind", parent, standalone.resolve()] if standalone.exists() else []
     args_cli = ["bwrap", "--bind", "/", "/", "--dev-bind", "/dev", "/dev",
-                "--ro-bind", parent, ACTIVE.resolve(), "--chdir", work,
+                "--ro-bind", parent, ACTIVE.resolve(), *extra_mount, "--chdir", work,
                 "strace", "-f", "-qq", "-e", "trace=openat,execve", "-s", "256",
                 "-o", dest / "files.trace", cli, "exec", "--skip-git-repo-check",
                 "--sandbox", "workspace-write", "--json", PROMPT]

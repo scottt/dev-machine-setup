@@ -1,0 +1,6 @@
+[Unit]
+Description=Check and activate the verified OpenAI runtime for Codex CLI
+[Service]
+Type=oneshot
+ExecStart=%h/.local/share/codex-cli-runtime/bin/update
+TimeoutStartSec=35min

@@ -1,0 +1,67 @@
+#!/usr/bin/python3
+"""Exercise one enabled skill in a fresh traced Homebrew Codex CLI task."""
+import argparse
+import json
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+import zipfile
+from xml.etree import ElementTree as ET
+
+CASES = {
+    "documents": "Create a one-page Word document named probe.docx containing only the text Hello. Verify the saved document.",
+    "pdf": "Create a one-page PDF named probe.pdf containing only the text Hello. Verify the saved PDF.",
+    "spreadsheets": "Create probe.xlsx with a sheet named Probe. Set A1 to 2, A2 to 3, and A3 to the formula =SUM(A1:A2). Verify the saved workbook.",
+    "presentations": "Create a minimal one-slide PowerPoint presentation in the current directory named probe.pptx. Its only text should be Hello. Use your normal presentation workflow and verify the saved file.",
+}
+
+
+def verify(work, skill, runtime):
+    if skill == "pdf":
+        pdf = work / "probe.pdf"
+        info = subprocess.check_output([runtime / "dependencies/bin/override/pdfinfo", pdf], text=True)
+        text = subprocess.check_output(["pdftotext", pdf, "-"], text=True)
+        return bool(re.search(r"^Pages:\s+1$", info, re.M)) and text.strip() == "Hello"
+    if skill == "spreadsheets":
+        code = """import openpyxl,sys
+p=sys.argv[1]
+s=openpyxl.load_workbook(p)['Probe']
+assert [s[x].value for x in ('A1','A2','A3')] == [2,3,'=SUM(A1:A2)']
+assert openpyxl.load_workbook(p,data_only=True)['Probe']['A3'].value == 5"""
+        workbook, = work.rglob("probe.xlsx")
+        subprocess.run([runtime / "dependencies/python/bin/python3", "-c", code, workbook], check=True)
+        return True
+    doc = skill == "documents"
+    with zipfile.ZipFile(work / ("probe.docx" if doc else "probe.pptx")) as z:
+        if not doc and sum(bool(re.fullmatch(r"ppt/slides/slide\d+\.xml", p)) for p in z.namelist()) != 1:
+            return False
+        tree = ET.fromstring(z.read("word/document.xml" if doc else "ppt/slides/slide1.xml"))
+        return z.testzip() is None and "".join(n.text or "" for n in tree.findall(".//{*}t")) == "Hello"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("skill", choices=CASES)
+    skill = parser.parse_args().skill
+    runtime = (Path.home() / ".local/share/codex-cli-runtime/current").resolve(strict=True)
+    dest = Path(tempfile.mkdtemp(prefix=f"codex-{skill}-"))
+    work = dest / "work"
+    work.mkdir()
+    print(dest, flush=True)
+    cli = Path(subprocess.check_output(["brew", "--prefix"], text=True).strip()) / "bin/codex"
+    trace = dest / "files.trace"
+    with (dest / "events.jsonl").open("w") as out, (dest / "stderr").open("w") as err:
+        proc = subprocess.run(["timeout", "420", "strace", "-f", "-qq", "-e", "trace=openat,execve",
+                               "-s", "512", "-o", trace, cli, "exec", "--skip-git-repo-check",
+                               "--sandbox", "workspace-write", "--json", CASES[skill]], cwd=work,
+                              stdout=out, stderr=err)
+    lines = trace.read_text(errors="replace").splitlines()
+    read_skill = any(f"/{skill}/SKILL.md" in line and "O_RDONLY" in line and re.search(r"= \d+$", line) for line in lines)
+    verified = verify(work, skill, runtime)
+    print(json.dumps(dict(skill=skill, skillOpened=read_skill, verified=verified, exitCode=proc.returncode)))
+    return int(bool(proc.returncode) or not (read_skill and verified))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
