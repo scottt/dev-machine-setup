@@ -1,0 +1,20 @@
+{
+  "bundleVersion": "26.1119.11507",
+  "channel": "latest",
+  "configSource": "statsig-layer",
+  "log": "codex-desktop-2eaea259-c294-4383-b4ab-09e7754af67f-360004-t0-i1-033117-0.log",
+  "platform": {
+    "digest": "d2fc57e0c3bd166fbea1f6e3cc565fd1443280b0d1a655f757c95dc20ef89414",
+    "format": "tar.xz",
+    "hash": "sha256",
+    "providers": [
+      {
+        "url": "https://persistent.oaistatic.com/codex-primary-runtime/26.1119.11507/codex-primary-runtime-linux-x64-26.1119.11507.tar.xz"
+      }
+    ],
+    "size": 394293768
+  },
+  "platformKey": "linux-x86_64",
+  "rpm": "chatgpt-26.1117.41037-1.x86_64",
+  "time": "2026-11-22T03:31:19.837Z"
+}

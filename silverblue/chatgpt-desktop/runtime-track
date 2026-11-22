@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""Run a native Linux x64 Codex CLI and primary-runtime pairing on tt0."""
+import argparse
+from datetime import datetime, timezone
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import tempfile
+import xml.etree.ElementTree as ET
+import zipfile
+
+FEED = "https://persistent.oaistatic.com/codex-primary-runtime/latest/linux-x64/LATEST.json"
+PROMPT = ("Create a minimal one-slide PowerPoint presentation in the current directory named "
+          "probe.pptx. Its only text should be Hello. Use your normal presentation workflow "
+          "and verify the saved file.")
+CACHE = Path.home() / ".cache/codex-runtime-tracks"
+ACTIVE = Path.home() / ".cache/codex-runtimes/codex-primary-runtime"
+
+
+def run(args, **kw):
+    return subprocess.run(args, check=True, **kw)
+
+
+def output(*args):
+    return subprocess.check_output(args, text=True).strip()
+
+
+def digest(path):
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def save(path, data):
+    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n")
+
+
+def fetch(url, dest):
+    run(["curl", "-fsSL", "--proto", "=https", "--proto-redir", "=https",
+         "--retry", "2", "--max-time", "900", "-o", dest, url])
+
+
+def desktop_selection(container, logs, dest):
+    rpm = output("podman", "exec", container, "rpm", "-q", "chatgpt")
+    for log in sorted(logs.rglob("*.log"), reverse=True):
+        for line in reversed(log.read_text(errors="replace").splitlines()):
+            if "Codex runtime config selected" not in line or "runtimeInstallConfig=" not in line:
+                continue
+            data, _ = json.JSONDecoder().raw_decode(line.split("runtimeInstallConfig=", 1)[1])
+            release = data.get("latest", {})
+            entry = release.get("platforms", {}).get("linux-x86_64")
+            if not entry:
+                continue
+            config = {"rpm": rpm, "time": line.split()[0], "log": log.name,
+                      "configSource": line.split(" source=")[-1].split()[0],
+                      "channel": "latest", "platformKey": "linux-x86_64",
+                      "bundleVersion": release["bundleVersion"], "platform": entry}
+            save(dest / "desktop-selection.json", config)
+            for name in ("codex", "codex-code-mode-host", "rg"):
+                run(["podman", "cp", f"{container}:/usr/lib/chatgpt/resources/{name}", dest / name])
+            return release["bundleVersion"], entry["providers"][0]["url"], entry["digest"], entry["size"], dest / "codex"
+    raise ValueError("No explicit Linux desktop release in the selected launch logs")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("track", choices=["desktop", "homebrew"])
+    parser.add_argument("--desktop-log-dir", type=Path, help="Private logs from a fresh launch of this RPM")
+    parser.add_argument("--container", default="chatgpt")
+    args = parser.parse_args()
+    os.umask(0o077)
+    CACHE.mkdir(parents=True, exist_ok=True)
+    dest = Path(tempfile.mkdtemp(prefix=args.track + "-", dir=CACHE))
+    print(dest, flush=True)
+    if args.track == "desktop":
+        if not args.desktop_log_dir:
+            parser.error("--desktop-log-dir is required for desktop")
+        version, url, sha, size, cli = desktop_selection(args.container, args.desktop_log_dir, dest)
+    else:
+        fetch(FEED, dest / "LATEST.json")
+        release = json.loads((dest / "LATEST.json").read_bytes())
+        if (release["targetPlatform"], release["targetArch"]) != ("linux", "x64"):
+            raise ValueError("Expected a Linux x64 release")
+        version, url, sha, size = (release[k] for k in ("bundleVersion", "archiveUrl", "archiveSha256", "archiveSizeBytes"))
+        cli = (Path(output("brew", "--prefix")) / "bin/codex").resolve()
+    if not re.fullmatch(r"[0-9a-f]{64}", sha):
+        raise ValueError("Invalid SHA-256")
+    archive = CACHE / (sha + ".tar.xz")
+    with (CACHE / (sha + ".lock")).open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if not archive.exists():
+            with tempfile.NamedTemporaryFile(dir=CACHE) as temp:
+                fetch(url, temp.name)
+                if digest(Path(temp.name)) != sha or os.stat(temp.name).st_size != size:
+                    raise ValueError("Runtime download failed verification")
+                os.link(temp.name, archive)
+        if archive.stat().st_size != size or digest(archive) != sha:
+            raise ValueError("Cached archive failed verification")
+        parent = CACHE / sha
+        if not parent.exists():
+            with tempfile.TemporaryDirectory(dir=CACHE) as temp:
+                run(["tar", "-xJf", archive, "-C", temp])
+                Path(temp, "codex-primary-runtime").rename(parent)
+    meta = json.loads((parent / "runtime.json").read_bytes())
+    if (meta["bundleVersion"], meta["targetPlatform"], meta["targetArch"]) != (version, "linux", "x64"):
+        raise ValueError("Unexpected runtime metadata")
+    result = {"track": args.track, "time": datetime.now(timezone.utc).isoformat(),
+              "cliVersion": output(cli, "--version"), "cliSha256": digest(cli),
+              "archiveUrl": url, "archiveSha256": sha, "runtime": meta, "prompt": PROMPT}
+    plugins = parent / "plugins/openai-primary-runtime/plugins"
+    result["plugins"] = {p.parent.parent.name: json.loads(p.read_bytes())["version"]
+                         for p in plugins.glob("*/.codex-plugin/plugin.json")}
+    save(dest / "result.json", result)
+    work = dest / "work"
+    work.mkdir()
+    args_cli = ["bwrap", "--bind", "/", "/", "--dev-bind", "/dev", "/dev",
+                "--ro-bind", parent, ACTIVE.resolve(), "--chdir", work,
+                "strace", "-f", "-qq", "-e", "trace=openat,execve", "-s", "256",
+                "-o", dest / "files.trace", cli, "exec", "--skip-git-repo-check",
+                "--sandbox", "workspace-write", "--json", PROMPT]
+    with (dest / "events.jsonl").open("w") as events, (dest / "stderr").open("w") as errors:
+        proc = subprocess.run(["timeout", "360", *args_cli], stdout=events, stderr=errors)
+    trace = (dest / "files.trace").read_text(errors="replace").splitlines()
+    def opened(fragment):
+        return any("openat(" in line and fragment in line and "O_RDONLY" in line
+                   and re.search(r"= \d+$", line) for line in trace)
+    result.update(exitCode=proc.returncode, skillOpened=opened("/presentations/SKILL.md"),
+                  artifactToolOpened=opened("/artifact-tool/dist/artifact_tool.mjs"))
+    pptx = work / "probe.pptx"
+    result["slideVerified"] = False
+    if pptx.is_file():
+        with zipfile.ZipFile(pptx) as z:
+            slides = [n for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
+            texts = [t.text for n in slides for t in ET.fromstring(z.read(n)).iter(
+                "{http://schemas.openxmlformats.org/drawingml/2006/main}t")]
+            result["slideVerified"] = len(slides) == 1 and texts == ["Hello"] and z.testzip() is None
+            result["pptxSha256"] = digest(pptx)
+    save(dest / "result.json", result)
+    print(json.dumps({k: result[k] for k in ("cliVersion", "archiveSha256", "exitCode", "skillOpened", "artifactToolOpened", "slideVerified")}))
+    return int(bool(proc.returncode) or not all(result[k] for k in ("skillOpened", "artifactToolOpened", "slideVerified")))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

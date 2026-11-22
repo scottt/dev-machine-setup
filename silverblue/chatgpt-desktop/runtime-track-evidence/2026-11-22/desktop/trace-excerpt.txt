@@ -1,0 +1,2 @@
+366951 openat(AT_FDCWD, "/var/home/scottt/.codex/plugins/cache/openai-primary-runtime/presentations/26.1119.11507/skills/presentations/SKILL.md", O_RDONLY) = 3
+368893 openat(AT_FDCWD, "/var/home/scottt/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/@oai/artifact-tool/dist/artifact_tool.mjs", O_RDONLY|O_CLOEXEC) = 17

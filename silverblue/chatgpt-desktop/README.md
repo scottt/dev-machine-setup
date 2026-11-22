@@ -1,5 +1,7 @@
 # ChatGPT Desktop on Silverblue
 
+See [Linux CLI and workspace runtime experiments](RUNTIME-TRACKS.md) for the desktop-selected and Homebrew release tracks.
+
 OpenAI ships the official ChatGPT desktop app for Linux as an RPM from a signed
 dnf repo:
 

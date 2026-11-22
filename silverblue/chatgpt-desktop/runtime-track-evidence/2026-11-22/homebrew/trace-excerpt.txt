@@ -1,0 +1,2 @@
+367893 openat(AT_FDCWD, "/var/home/scottt/.agents/skills/presentations/SKILL.md", O_RDONLY) = 3
+368757 openat(AT_FDCWD, "/var/home/scottt/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/@oai/artifact-tool/dist/artifact_tool.mjs", O_RDONLY|O_CLOEXEC) = 17

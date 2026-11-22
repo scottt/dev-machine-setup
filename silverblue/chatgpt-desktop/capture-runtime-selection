@@ -1,0 +1,22 @@
+#!/bin/sh
+# Launch an isolated desktop profile and return only the fresh state log directory.
+set -eu
+container=${1:-chatgpt}
+profile=$(mktemp -d "$HOME/.cache/desktop-track.XXXXXX")
+podman exec --user "$(id -un)" -e HOME="$HOME" -e XDG_STATE_HOME="$profile/state" \
+  -e XDG_CONFIG_HOME="$profile/config" "$container" sh -c '
+    umask 077
+    /usr/bin/chatgpt --ozone-platform=headless --disable-gpu \
+      --user-data-dir="$1/profile" > "$1/startup.log" 2>&1 &
+    app=$!
+    trap '\''kill "$app" 2>/dev/null || true'\'' EXIT
+    for i in $(seq 1 90); do
+      if grep -rqs "Codex runtime config selected.*runtimeInstallConfig=.*linux-x86_64" "$1/state/codex/logs"; then
+        exit 0
+      fi
+      kill -0 "$app" || exit 1
+      sleep 1
+    done
+    exit 1
+  ' sh "$profile"
+printf '%s\n' "$profile/state/codex/logs"

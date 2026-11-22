@@ -1,0 +1,19 @@
+{
+  "archiveName": "codex-primary-runtime-linux-x64-26.1119.11507.tar.xz",
+  "archiveSha256": "d2fc57e0c3bd166fbea1f6e3cc565fd1443280b0d1a655f757c95dc20ef89414",
+  "archiveSizeBytes": 394293768,
+  "archiveUrl": "https://persistent.oaistatic.com/codex-primary-runtime/26.1119.11507/codex-primary-runtime-linux-x64-26.1119.11507.tar.xz",
+  "bundleFormatVersion": 2,
+  "bundleVersion": "26.1119.11507",
+  "format": "tar.xz",
+  "generatedDependencies": [
+    "@oai/artifact-tool"
+  ],
+  "latestManifestFileName": "LATEST.json",
+  "latestManifestUrl": "https://persistent.oaistatic.com/codex-primary-runtime/latest/linux-x64/LATEST.json",
+  "nodeVersion": "24.22.3-cua.1",
+  "pythonVersion": "3.12.14",
+  "runtimeRootDirectoryName": "codex-primary-runtime",
+  "targetArch": "x64",
+  "targetPlatform": "linux"
+}

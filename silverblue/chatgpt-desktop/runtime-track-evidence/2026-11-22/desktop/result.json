@@ -1,0 +1,52 @@
+{
+  "archiveSha256": "d2fc57e0c3bd166fbea1f6e3cc565fd1443280b0d1a655f757c95dc20ef89414",
+  "archiveUrl": "https://persistent.oaistatic.com/codex-primary-runtime/26.1119.11507/codex-primary-runtime-linux-x64-26.1119.11507.tar.xz",
+  "artifactToolOpened": true,
+  "cliSha256": "63279cf1860a285495fa0bad3c40f5eb38c3487f7425adb603bcbd49175fcaf8",
+  "cliVersion": "codex-cli 0.171.0-alpha.13",
+  "exitCode": 0,
+  "plugins": {
+    "documents": "26.1119.11507",
+    "pdf": "26.1119.11507",
+    "presentations": "26.1119.11507",
+    "spreadsheets": "26.1119.11507",
+    "template-creator": "26.1119.11507"
+  },
+  "pptxSha256": "1124d0f1e2af05da265f927f7a6d1f92d76bd3d88f3555db0797f237b2c7af76",
+  "prompt": "Create a minimal one-slide PowerPoint presentation in the current directory named probe.pptx. Its only text should be Hello. Use your normal presentation workflow and verify the saved file.",
+  "runtime": {
+    "artifactToolVersion": "2.8.188",
+    "bundleFormatVersion": 2,
+    "bundleVersion": "26.1119.11507",
+    "bundledPlugins": [
+      "plugins/openai-primary-runtime"
+    ],
+    "bundledSkills": [],
+    "libreOfficeVersion": "25.2-headless-codex.1",
+    "nativeDependencies": [
+      "libheif",
+      "jxrlib",
+      "libreoffice-headless",
+      "poppler",
+      "tectonic",
+      "git"
+    ],
+    "nodeVersion": "24.22.3-cua.1",
+    "pnpmVersion": "11.25.0",
+    "pythonVersion": "3.12.14",
+    "skillsToRemove": [
+      "codex-primary-runtime/spreadsheets",
+      "codex-primary-runtime/slides",
+      "doc",
+      "docs",
+      "spreadsheet",
+      "slides"
+    ],
+    "targetArch": "x64",
+    "targetPlatform": "linux"
+  },
+  "skillOpened": true,
+  "slideVerified": true,
+  "time": "2026-11-22T03:33:02.560111+00:00",
+  "track": "desktop"
+}
