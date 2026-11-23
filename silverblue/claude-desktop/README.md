@@ -104,7 +104,9 @@ install.
 ## Beta limitations
 
 - Computer Use (app/screen control) is not available on Linux.
-- Dictation / voice input is not available.
+- Anthropic's docs say dictation / voice input is not available, but the Code
+  tab has a dictation button. In our container it needs `libpulse0`, which the
+  Containerfile installs. See [DICTATION-NOTES.md](DICTATION-NOTES.md).
 - Quick Entry global hotkey works on X11; on native Wayland it needs the
   desktop's GlobalShortcuts portal.
 

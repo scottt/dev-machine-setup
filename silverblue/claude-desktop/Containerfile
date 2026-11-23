@@ -51,10 +51,16 @@ RUN printf '%s\n' \
 # The dependency list comes from simulating the app's install, because
 # installing and removing the package isn't an option: its postrm deletes the
 # repo keyring and sources entry set up above.
+#
+# libpulse0 isn't a declared dependency, but Chromium loads it on the fly to
+# reach the host's PipeWire through its pulse socket. Without it, audio falls
+# back to ALSA, which has no route out of the container, and dictation fails
+# with "Your microphone isn't available". See DICTATION-NOTES.md.
 ARG DEPS_MONTH
 RUN test -n "$DEPS_MONTH" \
  && apt-get update \
- && apt-get install -y --no-install-recommends $(apt-get install -s --no-install-recommends claude-desktop \
+ && apt-get install -y --no-install-recommends libpulse0 \
+      $(apt-get install -s --no-install-recommends claude-desktop \
       | awk '$1 == "Inst" && $2 != "claude-desktop" { print $2 }') \
  && rm -rf /var/lib/apt/lists/*
 
