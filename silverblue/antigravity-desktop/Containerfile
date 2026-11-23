@@ -1,0 +1,36 @@
+ARG FEDORA_VER=44
+FROM registry.fedoraproject.org/fedora-toolbox:$FEDORA_VER
+ARG FEDORA_VER
+
+# Keep these runtime libraries in a separate layer from the versioned app.
+ARG DEPS_MONTH
+RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
+    test -n "$DEPS_MONTH" \
+ && dnf5 install -y --refresh --setopt=install_weak_deps=False \
+      alsa-lib at-spi2-atk ca-certificates cups-libs curl desktop-file-utils \
+      gtk3 libXcomposite libXdamage libXrandr libsecret mesa-dri-drivers \
+      mesa-libEGL mesa-libGL mesa-libgbm nss python3 tar xdg-utils
+
+COPY antigravity-gui xdg-open /usr/local/bin/
+COPY antigravity-gui.desktop /usr/local/share/applications/
+COPY extract-icon.py /usr/local/libexec/antigravity-extract-icon.py
+
+ARG ANTIGRAVITY_RELEASE
+RUN set -eu; \
+    case "$(rpm --eval '%{_arch}')" in \
+      x86_64) arch=x64 ;; \
+      aarch64) arch=arm ;; \
+      *) echo 'Unsupported Antigravity architecture' >&2; exit 1 ;; \
+    esac; \
+    printf '%s\n' "$ANTIGRAVITY_RELEASE" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$'; \
+    archive="$(mktemp)"; \
+    curl --retry 2 -fsSL -o "$archive" \
+      "https://storage.googleapis.com/antigravity-public/antigravity-hub/${ANTIGRAVITY_RELEASE}/linux-${arch}/Antigravity.tar.gz"; \
+    install -d /opt/antigravity /usr/share/icons/hicolor/512x512/apps; \
+    tar -xzf "$archive" -C /opt/antigravity --strip-components=1 \
+      --no-same-owner --no-same-permissions; \
+    rm "$archive"; \
+    test -x /opt/antigravity/antigravity; \
+    chmod 4755 /opt/antigravity/chrome-sandbox; \
+    python3 -I /usr/local/libexec/antigravity-extract-icon.py \
+      /opt/antigravity/resources/app.asar /usr/share/icons/hicolor/512x512/apps/antigravity.png

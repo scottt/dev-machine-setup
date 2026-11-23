@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Open sign-in and external links in the host's default browser.
+exec distrobox-host-exec --yes xdg-open "$@"

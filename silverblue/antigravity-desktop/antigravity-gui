@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# Keep Fedora's fontconfig cache separate from the host's cache.
+export XDG_CACHE_HOME="$HOME/.local/share/antigravity-gui-container-cache"
+
+if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+    set -- --ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3 "$@"
+fi
+
+exec /opt/antigravity/antigravity "$@"

@@ -121,7 +121,7 @@ class LifecycleTests(unittest.TestCase):
             podman.write_text('''#!/bin/bash
 set -eu
 case "$*" in
-  "image inspect localhost/chatgpt-desktop:latest"|"image inspect localhost/claude-desktop:latest") echo image ;;
+  "image inspect localhost/chatgpt-desktop:latest"|"image inspect localhost/claude-desktop:latest"|"image inspect localhost/antigravity-desktop:latest") echo image ;;
   "image inspect --format {{.Id}} localhost/chatgpt-desktop:latest"|"image inspect --format {{.Id}} localhost/claude-desktop:latest") printf '%064d\\n' 1 ;;
   "save "*) echo archive ;;
   *) exit 99 ;;
@@ -131,6 +131,7 @@ esac
             for command, expected in [
                 ("podman image inspect localhost/chatgpt-desktop:latest", "image"),
                 ("podman image inspect localhost/claude-desktop:latest", "image"),
+                ("podman image inspect localhost/antigravity-desktop:latest", "image"),
                 (f"podman save {1:064d}", "archive"),
             ]:
                 with self.subTest(command=command):

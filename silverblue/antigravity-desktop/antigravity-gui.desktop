@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Google Antigravity
+Exec=/usr/local/bin/antigravity-gui %u
+Icon=antigravity
+Terminal=false
+Type=Application
+Categories=Development;
+MimeType=x-scheme-handler/antigravity;
+StartupNotify=true
+StartupWMClass=antigravity

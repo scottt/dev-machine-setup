@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-images=(localhost/chatgpt-desktop:latest localhost/claude-desktop:latest)
+images=(localhost/chatgpt-desktop:latest localhost/claude-desktop:latest localhost/antigravity-desktop:latest)
 
 deny() {
 	printf 'distrobox-app-serve: not allowed: %s\n' "${SSH_ORIGINAL_COMMAND:-(interactive login)}" >&2

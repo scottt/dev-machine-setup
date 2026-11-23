@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# shellcheck source-path=SCRIPTDIR disable=SC2034 # app_* / image / container are read by lib/distrobox-app.sh
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/distrobox-app.sh
+. "$script_dir/../lib/distrobox-app.sh"
+
+app_name="Google Antigravity"
+app_id="antigravity-desktop"
+app_dir="$script_dir"
+app_icon="antigravity"
+app_process="antigravity"
+image="localhost/antigravity-desktop:latest"
+container="antigravity"
+
+app_versions() {
+	local machine arch release
+	machine="$(uname -m)"
+	case "$machine" in
+		x86_64) arch=x64 ;;
+		aarch64) arch=arm ;;
+		*) log "unsupported architecture: $machine"; return 1 ;;
+	esac
+
+	# The official page publishes versioned desktop tarball URLs. Match the App
+	# channel specifically so the IDE and CLI downloads are never selected.
+	if ! release="$(curl --retry 2 -fsSL https://antigravity.google/download \
+		| grep -oE 'href="https://storage\.googleapis\.com/antigravity-public/antigravity-hub/[0-9]+\.[0-9]+\.[0-9]+-[0-9]+/linux-'"$arch"'/Antigravity\.tar\.gz"' \
+		| cut -d / -f 6 | sort -u)" || [[ "$release" == *$'\n'* ]]; then
+		log "could not resolve a single desktop release for $machine"
+		return 1
+	fi
+	printf 'ANTIGRAVITY_RELEASE=%s\n' "$release"
+}
+
+distrobox_app_main "$@"
