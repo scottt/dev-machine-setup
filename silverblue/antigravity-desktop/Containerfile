@@ -11,9 +11,9 @@ RUN --mount=type=cache,id=f${FEDORA_VER},target=/var/cache/libdnf5 \
       gtk3 libXcomposite libXdamage libXrandr libsecret mesa-dri-drivers \
       mesa-libEGL mesa-libGL mesa-libgbm nss python3 tar xdg-utils
 
-COPY antigravity-gui xdg-open /usr/local/bin/
-COPY antigravity-gui.desktop /usr/local/share/applications/
-COPY extract-icon.py /usr/local/libexec/antigravity-extract-icon.py
+COPY --chmod=0755 antigravity-gui xdg-open /usr/local/bin/
+COPY --chmod=0644 antigravity-gui.desktop /usr/local/share/applications/
+COPY --chmod=0644 extract-icon.py /usr/local/libexec/antigravity-extract-icon.py
 
 ARG ANTIGRAVITY_RELEASE
 RUN set -eu; \
