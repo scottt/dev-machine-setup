@@ -35,4 +35,8 @@ app_versions() {
 	printf 'ANTIGRAVITY_RELEASE=%s\n' "$release"
 }
 
+app_remove_stale_launchers() {
+	rm -f "$HOME/.local/share/applications/${container}.desktop"
+}
+
 distrobox_app_main "$@"
