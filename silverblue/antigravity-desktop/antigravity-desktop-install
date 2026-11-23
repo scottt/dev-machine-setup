@@ -12,6 +12,7 @@ app_id="antigravity-desktop"
 app_dir="$script_dir"
 app_icon="antigravity"
 app_process="antigravity"
+app_executable_path="/opt/antigravity/antigravity"
 image="localhost/antigravity-desktop:latest"
 container="antigravity"
 

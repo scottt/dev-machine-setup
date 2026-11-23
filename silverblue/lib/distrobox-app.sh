@@ -15,6 +15,7 @@
 #                                package, for the newest upstream versions
 #   app_remove_stale_launchers   (optional) run after the container is recreated
 # and optionally sets:
+#   app_executable_path  executable path used to disambiguate matching process names
 #   app_timer_calendar   OnCalendar= of the update timer, e.g. "*-*-* 02:30:00
 #                        Asia/Taipei" to run soon after upstream usually publishes.
 #                        Default: daily, at a random time in the first hour.
@@ -114,7 +115,20 @@ image_id() { podman image inspect --format '{{.Id}}' "$image" 2>/dev/null || tru
 container_image_id() { podman container inspect --format '{{.Image}}' "$container" 2>/dev/null || true; }
 
 # Distrobox shares the host PID namespace, so the app's processes are visible here.
-app_running() { pgrep -x "$app_process" >/dev/null; }
+app_running() {
+	if [ -z "${app_executable_path:-}" ]; then
+		pgrep -x "$app_process" >/dev/null
+		return
+	fi
+	local pid executable
+	while IFS= read -r pid; do
+		executable="$(readlink "/proc/$pid/exe")" || continue
+		if [ "${executable% (deleted)}" = "$app_executable_path" ]; then
+			return 0
+		fi
+	done < <(pgrep -x "$app_process")
+	return 1
+}
 
 notify() {
 	command -v notify-send >/dev/null || return 0
