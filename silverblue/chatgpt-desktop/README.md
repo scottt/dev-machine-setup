@@ -127,10 +127,15 @@ The image build installs the signed ChatGPT RPM and applies
 ChatGPT account verification, TPM-backed enrollment, and the other device's
 8-digit pairing PIN.
 
-Tested with ChatGPT `26.1117.31558-1`. If an upstream release changes the
-renderer so the patch no longer matches, the build stops before tagging or
-deploying a new image. Review the changed renderer and update the patch
-before retrying. The timer sees patch changes even on the same RPM version.
+Tested with ChatGPT `26.1117.31558-1` and `26.1120.50957-1`. If an upstream
+release changes the renderer so the patch no longer matches, the build stops
+before tagging or deploying a new image. Review the changed renderer and update
+the patch before retrying. The timer sees patch changes even on the same RPM
+version.
+
+Remote Control pairing can work by running `codex remote-control pair` on
+the computer running the headless Codex app server.
+The command generates the pairing code, and the desktop app accepted it.
 
 #### How ChatGPT uses the TPM
 

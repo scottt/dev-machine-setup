@@ -12,12 +12,12 @@ import struct
 import subprocess
 
 # Keep substitutions the same size so offsets for packed and unpacked
-# resources stay valid. Match counts are from the verified 26.1117.31558 build.
+# resources stay valid. Match counts are checked against verified builds.
 # Changes to the upstream UI must be reviewed before a new image is published.
 RULES = (
     (
         "start remote discovery",
-        rb't=i\("1042620455"\)\|\|l',
+        rb't=[is]\("1042620455"\)\|\|l',
         rb"t=!0",
         1,
     ),
