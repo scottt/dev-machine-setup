@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
-# Keep Fedora's fontconfig cache separate from the host's cache.
+# Keep our container's fontconfig cache separate from the host's cache to avoid version
+# compatibility problems.
 export XDG_CACHE_HOME="$HOME/.local/share/antigravity-gui-container-cache"
 
 if [ -n "${WAYLAND_DISPLAY:-}" ]; then

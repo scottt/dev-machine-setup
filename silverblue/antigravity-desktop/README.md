@@ -8,10 +8,10 @@ the official Linux tarball for x86-64 or ARM64 and pins its release in the image
 ./antigravity-desktop-install
 ```
 
-Open **Google Antigravity (on antigravity)** from the app grid, or run
-`distrobox enter antigravity -- antigravity-gui`. Sign-in opens in the host's
-default browser and returns through the exported `antigravity://` handler. The
-image contains Antigravity's Electron runtime and omits the standalone Chrome browser.
+Open **Google Antigravity (on antigravity)** from the app grid. Deployment
+removes the separate Distrobox shell shortcut (`antigravity.desktop`). Sign-in
+opens in the host's default browser and returns through the exported
+`antigravity://` handler.
 
 The installer uses the [shared Distrobox update workflow](../lib/README.md).
 It installs a daily `antigravity-desktop-update.timer` and defers deployment
